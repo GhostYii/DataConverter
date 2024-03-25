@@ -14,7 +14,7 @@ namespace DataConverter
 
         public CMDAttribute(string name, string desc = "")
         {
-            Name = name;
+            Name = name.Replace(' ', '_');
             Desc = desc;
         }
     }
