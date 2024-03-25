@@ -25,24 +25,12 @@ namespace DataConverter
             }
         }
 
-        // ref type return object
-        public static Type ToType(this CellType cellType)
+        public static T[] SubArray<T>(this T[] arr, int offset, int count)
         {
-            switch (cellType.type)
-            {
-                case ValueType.Int:
-                    return typeof(int);
-                case ValueType.Float:
-                    return typeof(float);
-                case ValueType.String:
-                    return typeof(string);
-                case ValueType.Object:
-                    return Type.GetType(cellType.objName);
-                case ValueType.Ref:
-                    return typeof(object);
-            }
+            if (count <= 0)
+                return arr;
 
-            return null;
+            return new ArraySegment<T>(arr, offset, count).ToArray();
         }
     }
 }

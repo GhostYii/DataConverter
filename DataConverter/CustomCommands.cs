@@ -50,4 +50,14 @@
             Console.Print(json);
         }
     }
+
+    [System.Serializable]
+    public class TestObject
+    {
+        public int num;
+        public float percent;
+        public string text;
+
+        //public System.Collections.Generic.List<int> list;
+    }
 }

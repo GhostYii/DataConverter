@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using FastExcel;
 using Newtonsoft.Json;
-
 using ExcelFile = FastExcel.FastExcel;
 
 namespace DataConverter
@@ -14,9 +14,9 @@ namespace DataConverter
     using DataDict = Dictionary<int, Dictionary<string, object>>;
 
     public static class ExcelHelper
-    {
+    {         
         public static bool CheckValid(string filename, int sheetIndex)
-        {
+        {            
             if (!File.Exists(filename))
             {
                 Console.PrintError($"不存在数据表文件{filename}");
@@ -316,6 +316,21 @@ namespace DataConverter
             }
         }
 
+        public static void Test(string filename, int idx)
+        {
+            var sheet = GetWorksheet(filename, idx);
+            //Console.Print($"{sheet.ExistingHeadingRows}");
+            foreach (var row in sheet.Rows)
+            {
+                System.Text.StringBuilder sb = new System.Text.StringBuilder();
+                foreach (var cell in row.Cells)
+                {
+                    sb.AppendFormat("{0}:{1} ", cell.CellName, cell.Value);
+                }
+                Console.Print(sb.ToString());
+            }
+        }
+
         #region Internal
 
         private static Worksheet GetWorksheet(string filename, int sheetIndex = 1)
@@ -364,17 +379,9 @@ namespace DataConverter
 
             foreach (var row in sheet.Rows)
             {
-                bool isNote = false;
-                foreach (var cell in row.Cells)
-                {
-                    if (cell.Value.ToString().StartsWith(Const.NOTE_PREFIX))
-                    {
-                        isNote = true;
-                        break;
-                    }
+                bool isNote = row.Cells.ElementAt(0).Value.ToString().Trim().StartsWith(Const.NOTE_PREFIX);
 
-                    break;
-                }
+                //Console.Print($"表格{filename}第{row.RowNumber}行{row.Cells.ElementAt(0).CellName}是不是注释？{isNote}");
 
                 if (isNote)
                     continue;
@@ -424,13 +431,13 @@ namespace DataConverter
 
                 ConverterSettings cs = new ConverterSettings()
                 {
-                    isIgnore = cellStr.StartsWith('#'),
-                    cantEmpty = cellStr.EndsWith('*')
+                    isIgnore = cellStr.StartsWith(Const.NOTE_PREFIX),
+                    cantEmpty = cellStr.EndsWith(Const.NON_EMPTY_SUFFIX)
                 };
 
                 result[cell.ColumnName] = new CellName()
                 {
-                    name = cellStr.Trim('#', '*'),
+                    name = cellStr.Trim(Const.NOTE_PREFIX, Const.NON_EMPTY_SUFFIX),
                     fieldName = fieldName,
                     settings = cs
                 };
@@ -440,42 +447,20 @@ namespace DataConverter
         }
         private static DataTypeDict GetTypes(Row[] rows, string filename, int sheetIndex)
         {
-            DataTypeDict result = new DataTypeDict();
+            DataTypeDict result = new DataTypeDict();            
             foreach (var cell in rows[Const.ROW_LINE_NUM_TYPE].Cells)
             {
-                string cellStr = cell.Value.ToString().Trim();
-
-                string[] typeStr = cellStr.Split(':', StringSplitOptions.RemoveEmptyEntries);
-                switch (typeStr[0].ToLower())
+                string cellStr = cell.Value.ToString().Trim();                
+                var type = TypeParser.Parse(cellStr);
+                if (type == null)
                 {
-                    //case "auto":
-                    //    typeDict[cell.ColumnName] = new CellType() { type = ValueType.Auto };
-                    //    break;
-                    case "int":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.Int };
-                        break;
-                    case "string":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.String };
-                        break;
-                    case "str":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.String };
-                        break;
-                    case "float":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.Float };
-                        break;
-                    case "object":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.Object, objName = typeStr[1] };
-                        break;
-                    case "obj":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.Object, objName = typeStr[1] };
-                        break;
-                    case "ref":
-                        result[cell.ColumnName] = new CellType() { type = ValueType.Ref, refPath = typeStr[1] };
-                        break;
-                    default:
-                        Console.PrintError($"不支持的数据类型\'{typeStr[0]}\'，位于数据表{Path.GetFileName(filename)}表{sheetIndex}的" +
-                        $"{cell.ColumnName}{rows[Const.ROW_LINE_NUM_NAME].RowNumber}项，该项数据将被忽略");
-                        break;
+                    Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[0]}\'，位于数据表{Path.GetFileName(filename)}表{sheetIndex}的" +
+                                        $"{cell.CellName}项，该项数据将被忽略");
+                    continue;
+                }
+                else
+                {
+                    result[cell.ColumnName] = type;
                 }
             }
 

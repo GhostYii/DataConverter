@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace DataConverter
 {
     public enum FormatType
     {
-        None,
+        None = 0,
         Array,
         KeyValuePair,
         Object
@@ -13,12 +15,14 @@ namespace DataConverter
 
     public enum ValueType
     {
-        //Auto,
+        Null = 0,
         Int,
         Float,
         String,
         Object,
-        Ref
+        //Ref,
+        Array,
+        Map,
     }
 
     [JsonConverter(typeof(DataFormatConverter))]
@@ -29,11 +33,35 @@ namespace DataConverter
         public string type;
     }
 
-    public struct CellType
+
+    public class CellType
     {
-        public ValueType type;
-        public string objName;
-        public string refPath;
+        public ValueType type = ValueType.Null;
+        public CellType subType = null;
+        public string objName = string.Empty;
+
+        public static CellType Default => new CellType() { type = ValueType.Null };
+
+        public Type ToType()
+        {
+            switch (type)
+            {
+                case ValueType.Int:
+                    return typeof(int);
+                case ValueType.Float:
+                    return typeof(float);
+                case ValueType.String:
+                    return typeof(string);
+                case ValueType.Object:
+                    return Type.GetType(objName);
+                case ValueType.Array:
+                    return typeof(List<>);
+                    //case ValueType.Map:
+                    //    return typeof(Dictionary<>);
+            }
+
+            return null;
+        }
     }
 
     public struct ConverterSettings
