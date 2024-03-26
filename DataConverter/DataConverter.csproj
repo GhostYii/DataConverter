@@ -7,13 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\.editorconfig" Link=".editorconfig" />
+    <Compile Remove="Excel\ExcelHelper - 副本.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FastExcel" Version="3.0.13" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NPOI.Excel" Version="2.1.1" />
+    <PackageReference Include="SpreadsheetLight" Version="3.5.0" />
   </ItemGroup>
 
 </Project>

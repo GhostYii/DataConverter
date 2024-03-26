@@ -1,22 +1,23 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using SpreadsheetLight;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using FastExcel;
-using Newtonsoft.Json;
-using ExcelFile = FastExcel.FastExcel;
 
 namespace DataConverter
 {
+    using DataDict = Dictionary<int, Dictionary<string, object>>;
     using DataNameDict = Dictionary<string, CellName>;
     using DataTypeDict = Dictionary<string, CellType>;
-    using DataDict = Dictionary<int, Dictionary<string, object>>;
+    using ExcelDocument = SLDocument;
+    using Row = Dictionary<int, SLCell>;
+    using Rows = Dictionary<int, Dictionary<int, SLCell>>;
 
     public static class ExcelHelper
-    {         
+    {
         public static bool CheckValid(string filename, int sheetIndex)
-        {            
+        {
             if (!File.Exists(filename))
             {
                 Console.PrintError($"不存在数据表文件{filename}");
@@ -25,8 +26,8 @@ namespace DataConverter
 
             try
             {
-                ExcelFile file = new ExcelFile(new FileInfo(filename), true);
-                if (!file.Read(sheetIndex).Exists)
+                ExcelDocument file = new ExcelDocument(filename);
+                if (sheetIndex >= file.GetWorksheetNames().Count)
                 {
                     Console.PrintError($"数据{Path.GetFileName(filename)}不存在第{sheetIndex}张表");
                     return false;
@@ -51,8 +52,8 @@ namespace DataConverter
 
             try
             {
-                ExcelFile file = new ExcelFile(new FileInfo(filename), true);
-                if (!file.Read(sheetName).Exists)
+                ExcelDocument file = new ExcelDocument(filename, sheetName);
+                if (file == null)
                 {
                     Console.PrintError($"数据{Path.GetFileName(filename)}不存在名为{sheetName}的数据表");
                     return false;
@@ -70,14 +71,15 @@ namespace DataConverter
         // 获取数据表表格数量
         public static int GetWorksheetCount(string filename)
         {
-            using (ExcelFile file = new ExcelFile(new FileInfo(filename), true))
+            if (!File.Exists(filename))
             {
-                if (!file.ExcelFile.Exists)
-                {
-                    Console.PrintError($"文件{filename}不存在");
-                    return 0;
-                }
-                return file.Worksheets.Length;
+                Console.PrintError($"文件{filename}不存在");
+                return 0;
+            }
+
+            using (ExcelDocument file = new ExcelDocument(filename))
+            {
+                return file.GetSheetNames().Count;
             }
         }
 
@@ -86,20 +88,15 @@ namespace DataConverter
         {
             try
             {
-                using (ExcelFile file = new ExcelFile(new FileInfo(filename), true))
+                if (!File.Exists(filename))
                 {
-                    if (!file.ExcelFile.Exists)
-                    {
-                        Console.PrintError($"文件{filename}不存在");
-                        return null;
-                    }
+                    Console.PrintError($"文件{filename}不存在");
+                    return null;
+                }
 
-                    string[] names = new string[file.Worksheets.Length];
-                    for (int i = 0; i < file.Worksheets.Length; i++)
-                    {
-                        names[i] = file.Worksheets[i].Name;
-                    }
-                    return names;
+                using (ExcelDocument file = new ExcelDocument(filename))
+                {
+                    return file.GetSheetNames().ToArray();
                 }
             }
             catch (Exception e)
@@ -111,41 +108,43 @@ namespace DataConverter
 
         public static string GetSheetNameByIndex(string filename, int sheetIndex)
         {
-            using (ExcelFile file = new ExcelFile(new FileInfo(filename), true))
+            if (!File.Exists(filename))
             {
-                if (!file.ExcelFile.Exists)
-                {
-                    Console.PrintError($"文件{filename}不存在");
-                    return null;
-                }
-                var sheet = file.Read(sheetIndex);
-                if (!sheet.Exists)
+                Console.PrintError($"文件{filename}不存在");
+                return null;
+            }
+
+            using (ExcelDocument file = new ExcelDocument(filename))
+            {
+                var names = file.GetSheetNames();
+                if (sheetIndex >= names.Count)
                 {
                     Console.PrintError($"文件{filename}不存在索引为{sheetIndex}的表");
                     return null;
                 }
 
-                return sheet.Name;
+                return names[sheetIndex];
             }
 
         }
         public static int GetSheetIndexByName(string filename, string sheetName)
         {
-            using (ExcelFile file = new ExcelFile(new FileInfo(filename), true))
+            if (!File.Exists(filename))
             {
-                if (!file.ExcelFile.Exists)
-                {
-                    Console.PrintError($"文件{filename}不存在");
-                    return 0;
-                }
-                var sheet = file.Read(sheetName);
-                if (!sheet.Exists)
+                Console.PrintError($"文件{filename}不存在");
+                return 0;
+            }
+
+            using (ExcelDocument file = new ExcelDocument(filename))
+            {
+                int index = file.GetSheetNames().IndexOf(sheetName);
+                if (index == -1)
                 {
                     Console.PrintError($"文件{filename}不存在名称为{sheetName}的表");
                     return 0;
                 }
 
-                return sheet.Index;
+                return index;
             }
         }
 
@@ -156,7 +155,7 @@ namespace DataConverter
             if (!CheckValid(filename, sheetIndex))
                 return result;
 
-            Row[] rows = GetValidRows(filename, sheetIndex);
+            Rows rows = GetValidRows(filename, sheetIndex);
             if (rows == null)
             {
                 Console.PrintError($"不存在的表格{Path.GetFileName(filename)}");
@@ -180,11 +179,7 @@ namespace DataConverter
             if (!File.Exists(filename))
                 return defaultFmt;
 
-            using (ExcelFile excel = new ExcelFile(new FileInfo(filename), true))
-            {
-                int index = excel.GetWorksheetIndexFromName(sheetName);
-                return GetDataFormat(filename, index);
-            }
+            return GetDataFormat(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         // 获取表格数据名称
@@ -193,8 +188,8 @@ namespace DataConverter
             if (!CheckValid(filename, sheetIndex))
                 return null;
 
-            Row[] rows = GetValidRows(filename, sheetIndex);
-            if (rows.Length < Const.ROW_LINE_NUM_NAME)
+            Rows rows = GetValidRows(filename, sheetIndex);
+            if (rows.Count < Const.ROW_LINE_NUM_NAME)
             {
                 Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetIndex}第{Const.ROW_LINE_NUM_NAME}个有效行不是字段名称行");
                 return null;
@@ -207,15 +202,7 @@ namespace DataConverter
             if (!CheckValid(filename, sheetName))
                 return null;
 
-            using (ExcelFile excel = new ExcelFile(new FileInfo(filename), true))
-            {
-                int index = excel.GetWorksheetIndexFromName(sheetName);
-                if (index == 0)
-                {
-                    Console.PrintError($"数据表{Path.GetFileName(filename)}不存在名为{sheetName}的表格");
-                }
-                return GetNames(filename, index);
-            }
+            return GetNames(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         // 获取表格数据类型
@@ -224,8 +211,8 @@ namespace DataConverter
             if (!CheckValid(filename, sheetIndex))
                 return null;
 
-            Row[] rows = GetValidRows(filename, sheetIndex);
-            if (rows.Length < Const.ROW_LINE_NUM_TYPE)
+            Rows rows = GetValidRows(filename, sheetIndex);
+            if (rows.Count < Const.ROW_LINE_NUM_TYPE)
             {
                 Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetIndex}第{Const.ROW_LINE_NUM_TYPE}个有效行不是字段类型行");
                 return null;
@@ -238,15 +225,7 @@ namespace DataConverter
             if (!CheckValid(filename, sheetName))
                 return null;
 
-            using (ExcelFile excel = new ExcelFile(new FileInfo(filename), true))
-            {
-                int index = excel.GetWorksheetIndexFromName(sheetName);
-                if (index == 0)
-                {
-                    Console.PrintError($"数据表{Path.GetFileName(filename)}不存在名为{sheetName}的表格");
-                }
-                return GetTypes(filename, index);
-            }
+            return GetTypes(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         // 获取表格数据（除格式、类型、名称外）
@@ -262,15 +241,7 @@ namespace DataConverter
             if (!CheckValid(filename, sheetName))
                 return null;
 
-            using (ExcelFile excel = new ExcelFile(new FileInfo(filename), true))
-            {
-                int index = excel.GetWorksheetIndexFromName(sheetName);
-                if (index == 0)
-                {
-                    Console.PrintError($"数据表{Path.GetFileName(filename)}不存在名为{sheetName}的表格");
-                }
-                return GetTableData(filename, index);
-            }
+            return GetTableData(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         public static ExcelData GetExcelData(string filename, int sheetIndex = 1)
@@ -278,7 +249,7 @@ namespace DataConverter
             if (!CheckValid(filename, sheetIndex))
                 return null;
 
-            Row[] rows = GetValidRows(filename, sheetIndex);
+            Rows rows = GetValidRows(filename, sheetIndex);
 
             var fmt = GetDataFormat(rows);
             if (fmt.HasValue)
@@ -291,8 +262,8 @@ namespace DataConverter
                 data.Types = GetTypes(rows, filename, sheetIndex);
                 data.Names = GetNames(rows, filename, sheetIndex);
                 data.Datas = GetTableData(rows, data.Names.Keys);
-                data.DataBeginRowNumber = rows.Length <= Const.ROW_LINE_NUM_DATA ? 0 :
-                    rows[Const.ROW_LINE_NUM_DATA].RowNumber;
+                data.DataBeginRowNumber = rows.Count <= Const.ROW_LINE_NUM_DATA ? 0 :
+                    rows.ElementAt(Const.ROW_LINE_NUM_DATA).Key;
                 return data;
             }
             else
@@ -305,49 +276,20 @@ namespace DataConverter
             if (!CheckValid(filename, sheetName))
                 return null;
 
-            using (ExcelFile excel = new ExcelFile(new FileInfo(filename), true))
-            {
-                int index = excel.GetWorksheetIndexFromName(sheetName);
-                if (index == 0)
-                {
-                    Console.PrintError($"数据表{Path.GetFileName(filename)}不存在名为{sheetName}的表格");
-                }
-                return GetExcelData(filename, index);
-            }
-        }
+            return GetExcelData(filename, GetSheetIndexByName(filename, sheetName));
 
-        public static void Test(string filename, int idx)
-        {
-            var sheet = GetWorksheet(filename, idx);
-            //Console.Print($"{sheet.ExistingHeadingRows}");
-            foreach (var row in sheet.Rows)
-            {
-                System.Text.StringBuilder sb = new System.Text.StringBuilder();
-                foreach (var cell in row.Cells)
-                {
-                    sb.AppendFormat("{0}:{1} ", cell.CellName, cell.Value);
-                }
-                Console.Print(sb.ToString());
-            }
         }
 
         #region Internal
 
-        private static Worksheet GetWorksheet(string filename, int sheetIndex = 1)
+        private static ExcelDocument GetWorksheet(string filename, int sheetIndex = 0)
         {
-            if (!File.Exists(filename))
-                return null;
-
             try
             {
-                ExcelFile excel = new ExcelFile(new FileInfo(filename), true);
-                if (excel.Worksheets.Length <= sheetIndex - 1)
-                {
-                    excel.Dispose();
+                if (!CheckValid(filename, sheetIndex))
                     return null;
-                }
 
-                return excel.Read(sheetIndex);
+                return new ExcelDocument(filename, GetSheetNameByIndex(filename, sheetIndex));
             }
             catch (Exception e)
             {
@@ -356,8 +298,24 @@ namespace DataConverter
             }
         }
 
-        // 获取所有有效行，不过滤注释列
-        private static Row[] GetValidRows(string filename, int sheetIndex = 1)
+        private static ExcelDocument GetWorksheet(string filename, string sheetName = "Sheet1")
+        {
+            try
+            {
+                if (!CheckValid(filename, sheetName))
+                    return null;
+
+                return new ExcelDocument(filename, sheetName);
+            }
+            catch (Exception e)
+            {
+                Console.PrintError($"加载数据表{Path.GetFileName(filename)}失败，{e.Message}");
+                return null;
+            }
+        }
+
+        // 获取所有有效行
+        private static Rows GetValidRows(string filename, int sheetIndex = 0/*, bool includeNote = false*/)
         {
             if (!File.Exists(filename))
             {
@@ -365,36 +323,44 @@ namespace DataConverter
                 return null;
             }
 
-            Worksheet sheet = GetWorksheet(filename, sheetIndex);
+            var sheet = GetWorksheet(filename, sheetIndex);
             if (sheet == null)
                 return null;
 
-            if (!sheet.Exists)
+            var sstr = sheet.GetSharedStrings();
+            sstr[0].GetText();
+
+            //if (includeNote)
+            //    return sheet.GetCells();
+
+            Rows rows = new Rows();
+            foreach (var pair in sheet.GetCells())
             {
-                Console.PrintError($"不存在的表格\"{Path.GetFileName(filename)}\"");
-                return null;
-            }
-
-            List<Row> rows = new List<Row>();
-
-            foreach (var row in sheet.Rows)
-            {
-                bool isNote = row.Cells.ElementAt(0).Value.ToString().Trim().StartsWith(Const.NOTE_PREFIX);
-
-                //Console.Print($"表格{filename}第{row.RowNumber}行{row.Cells.ElementAt(0).CellName}是不是注释？{isNote}");
+                string firstCellValue = sheet.GetCellValueAsString($"A{pair.Key}");
+                bool isNote = firstCellValue.Trim().StartsWith(Const.NOTE_PREFIX);
 
                 if (isNote)
                     continue;
 
-                rows.Add(row);
+                Row row = new Row();
+                foreach (var cellInfo in pair.Value)
+                {
+                    int columnIndex = cellInfo.Key;
+                    var cell = cellInfo.Value;
+                    cell.CellText = sheet.GetCellValueAsString(pair.Key, columnIndex);
+                    row[columnIndex] = cell;
+                }
+
+                rows[pair.Key] = row;
             }
 
-            return rows.ToArray();
+            return rows;
         }
 
-        private static DataFormat? GetDataFormat(Row[] rows)
+        private static DataFormat? GetDataFormat(Rows rows)
         {
-            string fmtStr = rows[Const.ROW_LINE_NUM_FORMAT].Cells.ToArray()[0].Value.ToString();
+            var row = rows.ElementAt(Const.ROW_LINE_NUM_FORMAT).Value;
+            string fmtStr = row.Values.First().CellText.Trim();
             try
             {
                 var result = JsonConvert.DeserializeObject<DataFormat>(fmtStr);
@@ -405,25 +371,36 @@ namespace DataConverter
                 return null;
             }
         }
-        private static DataNameDict GetNames(Row[] rows, string filename, int sheetIndex)
+
+        private static DataNameDict GetNames(Rows rows, string filename, int sheetIndex)
         {
             DataNameDict result = new DataNameDict();
             HashSet<string> names = new HashSet<string>();
-            foreach (var cell in rows[Const.ROW_LINE_NUM_NAME].Cells)
+
+            var target = rows.ElementAt(Const.ROW_LINE_NUM_NAME);
+            int rowIndex = target.Key;
+            Row row = target.Value;
+
+            foreach (var pair in row)
             {
-                string cellStr = cell.Value.ToString().Trim();
+                int columnIndex = pair.Key;
+                string columnName = SLConvert.ToColumnName(columnIndex);
+                SLCell cell = pair.Value;
+
+                string cellStr = cell.CellText.Trim();
                 string fieldName = Utils.ToFieldName(cellStr);
+
                 if (string.IsNullOrEmpty(fieldName))
                 {
                     Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetIndex}位置为" +
-                        $"{cell.ColumnName}{rows[Const.ROW_LINE_NUM_NAME].RowNumber}的数据名称非法，非法名称将被忽略");
+                        $"{columnName}{rowIndex}的数据名称非法，非法名称将被忽略");
                     continue;
                 }
 
                 if (names.Contains(fieldName))
                 {
                     Console.PrintWarning($"数据表{Path.GetFileName(filename)}表{sheetIndex}位置为" +
-                        $"{cell.ColumnName}{rows[Const.ROW_LINE_NUM_NAME].RowNumber}的数据名称重复，重复数据将被忽略");
+                        $"{columnName}{rowIndex}的数据名称重复，重复数据将被忽略");
                     continue;
                 }
 
@@ -435,7 +412,7 @@ namespace DataConverter
                     cantEmpty = cellStr.EndsWith(Const.NON_EMPTY_SUFFIX)
                 };
 
-                result[cell.ColumnName] = new CellName()
+                result[columnName] = new CellName()
                 {
                     name = cellStr.Trim(Const.NOTE_PREFIX, Const.NON_EMPTY_SUFFIX),
                     fieldName = fieldName,
@@ -445,56 +422,72 @@ namespace DataConverter
 
             return result;
         }
-        private static DataTypeDict GetTypes(Row[] rows, string filename, int sheetIndex)
+        private static DataTypeDict GetTypes(Rows rows, string filename, int sheetIndex)
         {
-            DataTypeDict result = new DataTypeDict();            
-            foreach (var cell in rows[Const.ROW_LINE_NUM_TYPE].Cells)
+            var target = rows.ElementAt(Const.ROW_LINE_NUM_TYPE);
+            int rowIndex = target.Key;
+            Row row = target.Value;
+
+            DataTypeDict result = new DataTypeDict();
+            foreach (var pair in row)
             {
-                string cellStr = cell.Value.ToString().Trim();                
+                int columnIndex = pair.Key;
+                string columnName = SLConvert.ToColumnName(columnIndex);
+                var cell = pair.Value;                
+
+                string cellStr = cell.CellText.Trim();
                 var type = TypeParser.Parse(cellStr);
                 if (type == null)
                 {
                     Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[0]}\'，位于数据表{Path.GetFileName(filename)}表{sheetIndex}的" +
-                                        $"{cell.CellName}项，该项数据将被忽略");
+                                        $"{SLConvert.ToCellReference(rowIndex, columnIndex)}项，该项数据将被忽略");
                     continue;
                 }
                 else
                 {
-                    result[cell.ColumnName] = type;
+                    result[columnName] = type;
                 }
             }
-
             return result;
         }
-        private static DataDict GetTableData(Row[] rows, IEnumerable<string> columnNames = null)
+        private static DataDict GetTableData(Rows rows, IEnumerable<string> columnNames = null)
         {
             DataDict data = new DataDict();
-            for (int i = Const.ROW_LINE_NUM_DATA; i < rows.Length; i++)
+            for (int i = Const.ROW_LINE_NUM_DATA; i < rows.Count; i++)
             {
                 Dictionary<string, object> rowData = new Dictionary<string, object>();
+
+                var rowInfo = rows.ElementAt(i);
+                int rowIndex = rowInfo.Key;
+                var row = rowInfo.Value;
+
                 if (columnNames == null)
                 {
-                    foreach (var cell in rows[i].Cells)
+                    foreach (var cellInfo in row)
                     {
-                        rowData[cell.ColumnName] = cell.Value;
+                        int columnIndex = cellInfo.Key;
+                        string columnName = SLConvert.ToColumnName(columnIndex);
+                        var cell = cellInfo.Value;
+
+                        rowData[columnName] = cell.CellText;
                     }
                 }
                 else
                 {
                     foreach (var name in columnNames)
                     {
-                        rowData[name] = rows[i].GetCellByColumnName(name)?.Value;
+                        int columnIndex = SLConvert.ToColumnIndex(name);
+                        rowData[name] = row[columnIndex].CellText;
                     }
                 }
 
-                data[rows[i].RowNumber] = rowData;
+                data[rowIndex] = rowData;
             }
 
             return data;
         }
 
         #endregion
-
 
     }
 }

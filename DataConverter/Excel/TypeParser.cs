@@ -8,8 +8,10 @@ namespace DataConverter
     {
         private static Dictionary<string, MethodInfo> _typeParsers = new Dictionary<string, MethodInfo>();
 
-        static TypeParser()
+        public static void LoadParser()
         {
+            _typeParsers.Clear();
+
             var methods = typeof(TypeParser).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var method in methods)
             {
@@ -48,11 +50,12 @@ namespace DataConverter
                     }
                 }
             }
+
+            Console.Print($"解析函数加载完成，成功加载{_typeParsers.Count}个函数");
         }
 
         public static CellType Parse(string typeArg)
-        {
-            //Console.Print($"解析类型：{typeArg}");
+        {            
             string[] typeStr = SplitType(typeArg);
             string keyName = typeStr[0].Trim().ToLower();
             if (!_typeParsers.ContainsKey(keyName))

@@ -1,4 +1,6 @@
-﻿namespace DataConverter
+﻿using SpreadsheetLight;
+
+namespace DataConverter
 {
     class CustomCommands
     {
@@ -12,7 +14,11 @@
         [CMD("types", "获取数据表内的类型")]
         private static void PrintTypes(int index)
         {
+            var tick = System.DateTime.Now;
             var types = ExcelHelper.GetTypes("测试表格.xlsx", index);
+            var span = System.DateTime.Now - tick;
+            Console.Terminal?.Append($"解析类型消耗时间:{span.Milliseconds}ms");
+
             if (types == null)
                 return;
             foreach (var type in types)
@@ -48,6 +54,27 @@
             Converter.ExcelConverter ec = new Converter.ExcelConverter();
             string json = ec.ToJson("测试表格.xlsx", "字典测试");
             Console.Print(json);
+        }
+
+        [CMD("test")]
+        private static void Test()
+        {            
+            SLDocument doc = new SLDocument("测试表格.xlsx", "数组测试");            
+            var cells = doc.GetCells();
+            foreach (var cell in doc.GetCells())
+            {
+                int rowIndex = cell.Key;
+
+                foreach (var key in cell.Value.Keys)
+                {
+
+                    
+                    //if (cell.Value.TryGetValue(key, out SLCell c))
+                        Console.Print($"{SLConvert.ToCellReference(rowIndex, key)}-{doc.GetCellValueAsString(cell.Key, key)}");
+                }
+
+            }
+
         }
     }
 
