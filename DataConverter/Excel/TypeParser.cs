@@ -84,7 +84,7 @@ namespace DataConverter
             return new string[2] { sb.ToString(), offset + 1 >= typeArg.Length ? string.Empty : typeArg.Substring(offset + 1) };
         }
 
-
+        // TODO: support auto
         //[ExcelTypeParser("auto")]
         //private static CellType AutoTypeParser(string type, string define)
         //{
@@ -121,7 +121,7 @@ namespace DataConverter
             return new CellType { type = ValueType.Array, subType = Parse(subType) };
         }
 
-        [ExcelTypeParser("map", "dict", "pairs")]
+        [ExcelTypeParser("map", "dict", "pairs", "hash")]
         private static CellType DictionaryParser(string type, string subType)
         {
             return new CellType { type = ValueType.Map, subType = Parse(subType) };

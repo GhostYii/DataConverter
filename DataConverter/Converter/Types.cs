@@ -20,7 +20,6 @@ namespace DataConverter
         Float,
         String,
         Object,
-        //Ref,
         Array,
         Map,
     }
@@ -55,12 +54,38 @@ namespace DataConverter
                 case ValueType.Object:
                     return Type.GetType(objName);
                 case ValueType.Array:
-                    return typeof(List<>);
-                    //case ValueType.Map:
-                    //    return typeof(Dictionary<>);
+                    return Type.GetType(TypeName);
+                case ValueType.Map:
+                    return Type.GetType(TypeName);
             }
+            return typeof(object);
+        }
 
-            return null;
+        // TODO: array & dictionary not implement
+        public string TypeName
+        {
+            get
+            {
+                switch (type)
+                {
+                    case ValueType.Null:
+                        return null;     // Error Case
+                    case ValueType.Int:
+                        return typeof(float).FullName;
+                    case ValueType.Float:
+                        return typeof(float).FullName;
+                    case ValueType.String:
+                        return typeof(string).FullName;
+                    case ValueType.Object:
+                        return objName;
+                    case ValueType.Array:
+                        return $"System.Collections.Generic.List`1[{subType.TypeName}]";
+                    case ValueType.Map:
+                        return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.TypeName}]";
+                    default:
+                        return typeof(object).FullName;
+                }
+            }
         }
     }
 

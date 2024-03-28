@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -31,7 +33,25 @@ namespace DataConverter.Converter
 
         public override string ToJson(string filename)
         {
-            return "";
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+
+            string[] names = ExcelHelper.GetWorkshetNames(filename);
+            if (names != null)
+            {
+                for (int i = 0; i < names.Length; i++)
+                {
+                    string json = ToJson(filename, names[i]);
+                    if (string.IsNullOrEmpty(json))
+                        json = "\"\"";
+                    sb.Append(json);
+                    if (i != names.Length - 1)
+                        sb.Append(",");
+                }
+            }
+
+            sb.Append("]");
+            return sb.ToString();
         }
 
         public string ToJson(string filename, string sheetName)
@@ -47,11 +67,11 @@ namespace DataConverter.Converter
                     JArray array = new JArray();
                     foreach (var dataPair in excelData.Datas)
                     {
-                        array.Add(ToJsonObject(excelData, dataPair.Key));                       
+                        array.Add(ToJsonObject(excelData, dataPair.Key));
                     }
                     return JsonConvert.SerializeObject(array);
                 case FormatType.KeyValuePair:
-                    JObject mapObj = new JObject();                    
+                    JObject mapObj = new JObject();
                     foreach (var dataPair in excelData.Datas)
                     {
                         var item = ToJsonObject(excelData, dataPair.Key);
@@ -71,7 +91,7 @@ namespace DataConverter.Converter
         }
 
         private JObject ToJsonObject(ExcelData data, int rowNumber)
-        {            
+        {
             JObject jsonData = new JObject();
             if (!data.Datas.ContainsKey(rowNumber))
                 return null;
@@ -103,8 +123,11 @@ namespace DataConverter.Converter
 
         private object To(object value, Type type)
         {
+            if (type == null)
+                return value;
+
             if (value == null)
-                return null;
+                return type.IsValueType ? Activator.CreateInstance(type) : null;
 
             if (type == typeof(int))
                 return Convert.ToInt32(value);

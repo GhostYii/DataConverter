@@ -149,7 +149,7 @@ namespace DataConverter
         }
 
         // 获取表格数据格式
-        public static DataFormat GetDataFormat(string filename, int sheetIndex = 1)
+        public static DataFormat GetDataFormat(string filename, int sheetIndex = 0)
         {
             DataFormat result = new DataFormat() { format = FormatType.None };
             if (!CheckValid(filename, sheetIndex))
@@ -183,7 +183,7 @@ namespace DataConverter
         }
 
         // 获取表格数据名称
-        public static DataNameDict GetNames(string filename, int sheetIndex = 1)
+        public static DataNameDict GetNames(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -206,7 +206,7 @@ namespace DataConverter
         }
 
         // 获取表格数据类型
-        public static DataTypeDict GetTypes(string filename, int sheetIndex = 1)
+        public static DataTypeDict GetTypes(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -229,7 +229,7 @@ namespace DataConverter
         }
 
         // 获取表格数据（除格式、类型、名称外）
-        public static DataDict GetTableData(string filename, int sheetIndex = 1)
+        public static DataDict GetTableData(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -244,7 +244,7 @@ namespace DataConverter
             return GetTableData(filename, GetSheetIndexByName(filename, sheetName));
         }
 
-        public static ExcelData GetExcelData(string filename, int sheetIndex = 1)
+        public static ExcelData GetExcelData(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -388,6 +388,10 @@ namespace DataConverter
                 SLCell cell = pair.Value;
 
                 string cellStr = cell.CellText.Trim();
+
+                if (string.IsNullOrEmpty(cellStr))
+                    continue;
+
                 string fieldName = Utils.ToFieldName(cellStr);
 
                 if (string.IsNullOrEmpty(fieldName))
@@ -433,9 +437,11 @@ namespace DataConverter
             {
                 int columnIndex = pair.Key;
                 string columnName = SLConvert.ToColumnName(columnIndex);
-                var cell = pair.Value;                
+                var cell = pair.Value;
 
                 string cellStr = cell.CellText.Trim();
+                if (string.IsNullOrEmpty(cellStr))
+                    continue;
                 var type = TypeParser.Parse(cellStr);
                 if (type == null)
                 {
@@ -477,7 +483,7 @@ namespace DataConverter
                     foreach (var name in columnNames)
                     {
                         int columnIndex = SLConvert.ToColumnIndex(name);
-                        rowData[name] = row[columnIndex].CellText;
+                        rowData[name] = row.ContainsKey(columnIndex) ? row[columnIndex].CellText : null;
                     }
                 }
 
