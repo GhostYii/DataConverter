@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using DataConverter.Utility;
+using Microsoft.CSharp;
 
 namespace DataConverter.Converter
 {
@@ -26,32 +28,46 @@ namespace DataConverter.Converter
             return new T();
         }
 
-        public override string ToCSharpClass(string filename)
+        public override string ToCSharpClass(string filename, int sheetIndex, string className)
         {
-            throw new NotImplementedException();
-        }
+            // support keyword name
+            CSharpCodeProvider csProvider = new CSharpCodeProvider();
+            if (!csProvider.IsValidIdentifier(className))
+                className = $"@{className}";
 
-        public override string ToJson(string filename)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("[");
+            ExcelData data = ExcelHelper.GetExcelData(filename, sheetIndex);
+            if (data == null)
+                return string.Empty;
 
-            string[] names = ExcelHelper.GetWorkshetNames(filename);
-            if (names != null)
+            CodeWriter writer = new CodeWriter();
+            writer.WriteLine("using System;");
+            writer.WriteLine("using System.Collections.Generic;");
+
+            writer.WriteLine();
+
+            writer.WriteLine($"public struct {className}");
+            writer.BeginBlock();
+
+            foreach (var pair in data.Names)
             {
-                for (int i = 0; i < names.Length; i++)
-                {
-                    string json = ToJson(filename, names[i]);
-                    if (string.IsNullOrEmpty(json))
-                        json = "\"\"";
-                    sb.Append(json);
-                    if (i != names.Length - 1)
-                        sb.Append(",");
-                }
+                string columnName = pair.Key;
+                var cellName = pair.Value;
+
+                if (cellName.settings.isIgnore)
+                    continue;
+
+                writer.WriteLine($"public {data.Types[columnName].ClassTypeName} {cellName.fieldName} {{ get; set; }}");
             }
 
-            sb.Append("]");
-            return sb.ToString();
+            writer.EndBlock();
+
+            return writer.ToString();
+        }
+
+        public override string ToJson(string filename, int sheetIndex)
+        {
+            string name = ExcelHelper.GetSheetNameByIndex(filename, sheetIndex);
+            return ToJson(filename, name);
         }
 
         public string ToJson(string filename, string sheetName)

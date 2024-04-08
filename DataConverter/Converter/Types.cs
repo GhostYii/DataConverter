@@ -61,7 +61,7 @@ namespace DataConverter
             return typeof(object);
         }
 
-        // TODO: array & dictionary not implement
+        // dictionary key's type can only be string
         public string TypeName
         {
             get
@@ -82,9 +82,33 @@ namespace DataConverter
                         return $"System.Collections.Generic.List`1[{subType.TypeName}]";
                     case ValueType.Map:
                         return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.TypeName}]";
-                    default:
-                        return typeof(object).FullName;
                 }
+                return typeof(object).FullName;
+            }
+        }
+
+        public string ClassTypeName
+        {
+            get
+            {
+                switch (type)
+                {
+                    case ValueType.Null:
+                        return string.Empty;
+                    case ValueType.Int:
+                        return "int";
+                    case ValueType.Float:
+                        return "float";
+                    case ValueType.String:
+                        return "string";
+                    case ValueType.Object:
+                        return objName;
+                    case ValueType.Array:
+                        return $"List<{subType.ClassTypeName}>";
+                    case ValueType.Map:
+                        return $"Dictionary<string, {subType.ClassTypeName}>";
+                }
+                return string.Empty;
             }
         }
     }

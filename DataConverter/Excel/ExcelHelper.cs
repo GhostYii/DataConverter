@@ -16,6 +16,15 @@ namespace DataConverter
 
     public static class ExcelHelper
     {
+        public static int ToColumnIndex(string columnName)
+        {
+            return SLConvert.ToColumnIndex(columnName);
+        }
+        public static string ToColumnName(int columnIndex)
+        {
+            return SLConvert.ToColumnName(columnIndex);
+        }
+
         public static bool CheckValid(string filename, int sheetIndex)
         {
             if (!File.Exists(filename))

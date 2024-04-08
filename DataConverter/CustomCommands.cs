@@ -23,7 +23,7 @@ namespace DataConverter
                 return;
             foreach (var type in types)
             {
-                Commands.Terminal?.Append($"{type.Key}:{type.Value.type}");
+                Commands.Terminal?.Append($"{type.Key}:{type.Value.type} ({type.Value.ToType()?.Name})");
             }
         }
 
@@ -58,24 +58,12 @@ namespace DataConverter
 
         [CMD("test")]
         private static void Test()
-        {            
-            SLDocument doc = new SLDocument("测试表格.xlsx", "数组测试");            
-            var cells = doc.GetCells();
-            foreach (var cell in doc.GetCells())
-            {
-                int rowIndex = cell.Key;
-
-                foreach (var key in cell.Value.Keys)
-                {
-
-                    
-                    //if (cell.Value.TryGetValue(key, out SLCell c))
-                        Console.Print($"{SLConvert.ToCellReference(rowIndex, key)}-{doc.GetCellValueAsString(cell.Key, key)}");
-                }
-
-            }
-
+        {
+            Converter.ExcelConverter ec = new Converter.ExcelConverter();
+            string json = ec.ToCSharpClass("测试表格.xlsx", 0, "if");
+            Console.Print(json);
         }
+
     }
 
     [System.Serializable]
