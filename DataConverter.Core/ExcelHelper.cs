@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
     using DataDict = Dictionary<int, Dictionary<string, object>>;
     using DataNameDict = Dictionary<string, CellName>;
@@ -253,7 +253,7 @@ namespace DataConverter
             return GetTableData(filename, GetSheetIndexByName(filename, sheetName));
         }
 
-        public static ExcelData GetExcelData(string filename, int sheetIndex = 0)
+        internal static ExcelData GetExcelData(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -280,7 +280,7 @@ namespace DataConverter
                 return null;
             }
         }
-        public static ExcelData GetExcelData(string filename, string sheetName)
+        internal static ExcelData GetExcelData(string filename, string sheetName)
         {
             if (!CheckValid(filename, sheetName))
                 return null;

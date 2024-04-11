@@ -5,12 +5,10 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using DataConverter.Utility;
-using Microsoft.CSharp;
 
-namespace DataConverter.Converter
+namespace DataConverter.Core
 {
-    internal class ExcelConverter : ConverterBase
+    public class ExcelConverter : ConverterBase
     {
         private static string[] _supportExtensions = new string[]
         {
@@ -19,7 +17,8 @@ namespace DataConverter.Converter
         };
 
         public override bool CheckConvert(string extension)
-        {
+        {            
+
             return _supportExtensions.Contains(extension);
         }
 
@@ -28,12 +27,12 @@ namespace DataConverter.Converter
             return new T();
         }
 
-        public override string ToCSharpClass(string filename, int sheetIndex, string className)
+        public override string ToCSharp(string filename, int sheetIndex, string typename)
         {
             // support keyword name
-            CSharpCodeProvider csProvider = new CSharpCodeProvider();
-            if (!csProvider.IsValidIdentifier(className))
-                className = $"@{className}";
+            //CSharpCodeProvider csProvider = new CSharpCodeProvider();
+            //if (!csProvider.IsValidIdentifier(typename))
+            //    typename = $"@{typename}";
 
             ExcelData data = ExcelHelper.GetExcelData(filename, sheetIndex);
             if (data == null)
@@ -45,7 +44,7 @@ namespace DataConverter.Converter
 
             writer.WriteLine();
 
-            writer.WriteLine($"public struct {className}");
+            writer.WriteLine($"public struct {typename}");
             writer.BeginBlock();
 
             foreach (var pair in data.Names)
@@ -159,5 +158,7 @@ namespace DataConverter.Converter
 
             return value;
         }
+
+
     }
 }

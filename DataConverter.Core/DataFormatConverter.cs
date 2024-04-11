@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
     internal class DataFormatConverter : JsonConverter
     {

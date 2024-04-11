@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
-    public class ExcelData
+    internal class ExcelData
     {
         public int DataBeginRowNumber { get; internal set; }
         public string Filename { get; internal set; }

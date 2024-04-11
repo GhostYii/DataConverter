@@ -20,6 +20,11 @@ namespace DataConverter
             Terminal?.AppendRaw(value, color);
         }
 
+        public static void Print(string value)
+        {
+            Terminal.AppendRaw(value, TerminalControl.LogType.Info.ToBrush());
+        }
+
         public static void PrintError(string value)
         {
             Print(value, TerminalControl.LogType.Error);

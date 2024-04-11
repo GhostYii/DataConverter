@@ -5,6 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using DataConverter.Core;
 
 namespace DataConverter
 {
@@ -20,7 +21,9 @@ namespace DataConverter
             ConsoleWindow = new ConsoleWindow();
             ConsoleWindow.Show();
 
-            TypeParser.LoadParser();
+            DataConverter.Core.Console.AddPrintListener(Console.Print);
+            DataConverter.Core.Console.AddWarningListener(Console.PrintWarning);
+            DataConverter.Core.Console.AddErrorListener(Console.PrintError);            
         }
     }
 }

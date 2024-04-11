@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 
-namespace DataConverter.Utility
+namespace DataConverter.Core
 {
     internal class CodeWriter
     {

@@ -2,17 +2,19 @@
 using System.Reflection;
 using System.Text;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
-    internal static class TypeParser
+    public static class TypeParser
     {
         private static Dictionary<string, MethodInfo> _typeParsers = new Dictionary<string, MethodInfo>();
 
-        public static void LoadParser()
+        static TypeParser() { LoadParser(typeof(TypeParser));  }
+
+        public static void LoadParser(Type type)
         {
             _typeParsers.Clear();
 
-            var methods = typeof(TypeParser).GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            var methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             foreach (var method in methods)
             {
                 var attrib = method.GetCustomAttribute<ExcelTypeParserAttribute>();
@@ -25,11 +27,11 @@ namespace DataConverter
                     continue;
                 }
 
-                foreach (var type in attrib.Types)
+                foreach (var t in attrib.Types)
                 {
-                    if (!_typeParsers.ContainsKey(type))
+                    if (!_typeParsers.ContainsKey(t))
                     {
-                        _typeParsers[type] = method;
+                        _typeParsers[t] = method;
                     }
                     else
                     {
@@ -54,7 +56,7 @@ namespace DataConverter
             Console.Print($"解析函数加载完成，成功加载{_typeParsers.Count}个函数");
         }
 
-        public static CellType Parse(string typeArg)
+        internal static CellType Parse(string typeArg)
         {            
             string[] typeStr = SplitType(typeArg);
             string keyName = typeStr[0].Trim().ToLower();
@@ -64,7 +66,7 @@ namespace DataConverter
             return _typeParsers[keyName].Invoke(null, new object[] { typeStr[0], typeStr[1] }) as CellType;
         }
 
-        public static string[] SplitType(string typeArg)
+        internal static string[] SplitType(string typeArg)
         {
             StringBuilder sb = new StringBuilder();
             int offset = 0;

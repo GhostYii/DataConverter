@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
     internal static class Utils
     {

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace DataConverter
+namespace DataConverter.Core
 {
     public enum FormatType
     {
@@ -54,15 +54,15 @@ namespace DataConverter
                 case ValueType.Object:
                     return Type.GetType(objName);
                 case ValueType.Array:
-                    return Type.GetType(TypeName);
+                    return Type.GetType(FullTypeName);
                 case ValueType.Map:
-                    return Type.GetType(TypeName);
+                    return Type.GetType(FullTypeName);
             }
             return typeof(object);
         }
 
         // dictionary key's type can only be string
-        public string TypeName
+        public string FullTypeName
         {
             get
             {
@@ -79,9 +79,9 @@ namespace DataConverter
                     case ValueType.Object:
                         return objName;
                     case ValueType.Array:
-                        return $"System.Collections.Generic.List`1[{subType.TypeName}]";
+                        return $"System.Collections.Generic.List`1[{subType.FullTypeName}]";
                     case ValueType.Map:
-                        return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.TypeName}]";
+                        return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.FullTypeName}]";
                 }
                 return typeof(object).FullName;
             }

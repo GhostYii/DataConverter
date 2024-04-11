@@ -1,4 +1,4 @@
-﻿using SpreadsheetLight;
+﻿using DataConverter.Core;
 
 namespace DataConverter
 {
@@ -43,7 +43,7 @@ namespace DataConverter
         [CMD("array")]
         private static void ArrayTest()
         {
-            Converter.ExcelConverter ec = new Converter.ExcelConverter();
+            ExcelConverter ec = new ExcelConverter();
             string json = ec.ToJson("测试表格.xlsx", "数组测试");
             Console.Print(json);
         }
@@ -51,7 +51,7 @@ namespace DataConverter
         [CMD("map")]
         private static void MapTest()
         {
-            Converter.ExcelConverter ec = new Converter.ExcelConverter();
+            ExcelConverter ec = new ExcelConverter();
             string json = ec.ToJson("测试表格.xlsx", "字典测试");
             Console.Print(json);
         }
@@ -59,8 +59,8 @@ namespace DataConverter
         [CMD("test")]
         private static void Test()
         {
-            Converter.ExcelConverter ec = new Converter.ExcelConverter();
-            string json = ec.ToCSharpClass("测试表格.xlsx", 0, "if");
+            ExcelConverter ec = new ExcelConverter();
+            string json = ec.ToCSharp("测试表格.xlsx", 0, "test");
             Console.Print(json);
         }
 
