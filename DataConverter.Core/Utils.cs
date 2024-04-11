@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Linq;
 
 namespace DataConverter.Core
 {
@@ -37,11 +38,11 @@ namespace DataConverter.Core
                 return null;
             
             // 含有非法字符
-            if (name.Any((ch) => InvaildChars.Contains(ch)))
+            if (!IsValidTypeName(name))
                 return null;
 
             StringBuilder sb = new StringBuilder();
-            string[] splits = name.Split('_');
+            string[] splits = name.Split('_', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
             // 数字开头加上下划线前缀            
             if (int.TryParse(name.Substring(0, 1), out int intRes))
@@ -72,9 +73,38 @@ namespace DataConverter.Core
             return ValueType.String;
         }
 
+        // 名称是否包含非法字符
+        public static bool IsValidTypeName(string name)
+        {
+            return !name.Any((ch) => InvaildChars.Contains(ch));
+        }
+
+        // 名称是否是csharp关键字
         public static bool IsValidIdentifier(string value)
         {
             return !InvaliedFieldNames.Contains(value);
+        }
+
+        // 获取字典数据中键的类型，失败返回object
+        public static string GetKeyType(ExcelData data)
+        {
+            if (data == null || data.Format.format != FormatType.KeyValuePair)
+                return "object";
+
+            string columnNumber = string.Empty;
+            foreach (var pair in data.Names)
+            {
+                if (pair.Value.name == data.Format.key)
+                {
+                    columnNumber = pair.Key;
+                    break;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(columnNumber) && data.Types.TryGetValue(columnNumber, out CellType type))
+                return type.TypeName;
+
+            return "object";
         }
     }
 }

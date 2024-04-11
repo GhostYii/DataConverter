@@ -204,8 +204,8 @@ namespace DataConverter
 
                 for (int i = 0; i < cmd.method.GetParameters().Length; i++)
                 {
-                    Type type = cmd.method.GetParameters()[i].ParameterType;
-                    sb.Append(type);
+                    var paramInfo = cmd.method.GetParameters()[i];
+                    sb.AppendFormat("{0} {1}", paramInfo.ParameterType.Name, paramInfo.Name);
 
                     if (i != cmd.method.GetParameters().Length - 1)
                         sb.Append(", ");
@@ -235,15 +235,13 @@ namespace DataConverter
             foreach (var cmd in _cmds[cmdName])
             {
                 sb.AppendFormat("{0}(", cmdName);
-                bool isFirst = true;
-                foreach (var parameter in cmd.method.GetParameters())
+                for (int i = 0; i < cmd.method.GetParameters().Length; i++)
                 {
-                    sb.Append(parameter.ParameterType);
-                    if (!isFirst)
-                    {
-                        sb.Append(",");
-                        isFirst = false;
-                    }
+                    var paramInfo = cmd.method.GetParameters()[i];                    
+                    sb.AppendFormat("{0} {1}", paramInfo.ParameterType.Name, paramInfo.Name);
+
+                    if (i != cmd.method.GetParameters().Length - 1)
+                        sb.Append(", ");
                 }
                 sb.AppendFormat("):\n{0}\n", cmd.method.GetCustomAttributes<CMDAttribute>().ToArray()[0].Desc);
             }

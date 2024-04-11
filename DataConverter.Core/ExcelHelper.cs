@@ -157,8 +157,10 @@ namespace DataConverter.Core
             }
         }
 
+        #region Internal
+
         // 获取表格数据格式
-        public static DataFormat GetDataFormat(string filename, int sheetIndex = 0)
+        internal static DataFormat GetDataFormat(string filename, int sheetIndex = 0)
         {
             DataFormat result = new DataFormat() { format = FormatType.None };
             if (!CheckValid(filename, sheetIndex))
@@ -179,7 +181,7 @@ namespace DataConverter.Core
 
             return fmt ?? result;
         }
-        public static DataFormat GetDataFormat(string filename, string sheetName)
+        internal static DataFormat GetDataFormat(string filename, string sheetName)
         {
             DataFormat defaultFmt = new DataFormat() { format = FormatType.None };
             if (!CheckValid(filename, sheetName))
@@ -192,7 +194,7 @@ namespace DataConverter.Core
         }
 
         // 获取表格数据名称
-        public static DataNameDict GetNames(string filename, int sheetIndex = 0)
+        internal static DataNameDict GetNames(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -206,7 +208,7 @@ namespace DataConverter.Core
 
             return GetNames(rows, filename, sheetIndex);
         }
-        public static DataNameDict GetNames(string filename, string sheetName)
+        internal static DataNameDict GetNames(string filename, string sheetName)
         {
             if (!CheckValid(filename, sheetName))
                 return null;
@@ -215,7 +217,7 @@ namespace DataConverter.Core
         }
 
         // 获取表格数据类型
-        public static DataTypeDict GetTypes(string filename, int sheetIndex = 0)
+        internal static DataTypeDict GetTypes(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
@@ -229,7 +231,7 @@ namespace DataConverter.Core
 
             return GetTypes(rows, filename, sheetIndex);
         }
-        public static DataTypeDict GetTypes(string filename, string sheetName)
+        internal static DataTypeDict GetTypes(string filename, string sheetName)
         {
             if (!CheckValid(filename, sheetName))
                 return null;
@@ -238,14 +240,14 @@ namespace DataConverter.Core
         }
 
         // 获取表格数据（除格式、类型、名称外）
-        public static DataDict GetTableData(string filename, int sheetIndex = 0)
+        internal static DataDict GetTableData(string filename, int sheetIndex = 0)
         {
             if (!CheckValid(filename, sheetIndex))
                 return null;
 
             return GetTableData(GetValidRows(filename, sheetIndex));
         }
-        public static DataDict GetTableData(string filename, string sheetName)
+        internal static DataDict GetTableData(string filename, string sheetName)
         {
             if (!CheckValid(filename, sheetName))
                 return null;
@@ -287,9 +289,7 @@ namespace DataConverter.Core
 
             return GetExcelData(filename, GetSheetIndexByName(filename, sheetName));
 
-        }
-
-        #region Internal
+        }        
 
         private static ExcelDocument GetWorksheet(string filename, int sheetIndex = 0)
         {

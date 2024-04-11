@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -28,9 +29,19 @@ namespace DataConverter.Core
 
         public override string ToCSharp(string filename, int sheetIndex, string typename)
         {
+            if (string.IsNullOrEmpty(typename) || !Utils.IsValidTypeName(typename))
+            {
+                Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetIndex}转CS文件typename({typename})无法作为变量名");
+                return string.Empty;
+            }
+
+            // number typename add '_' prefix
+            if (int.TryParse(typename.Substring(0, 1), out int _))            
+                typename = $"_{typename}";            
+
             // support keyword name           
             if (!Utils.IsValidIdentifier(typename))
-                typename = $"@{typename}";
+                typename = $"@{typename}";            
 
             ExcelData data = ExcelHelper.GetExcelData(filename, sheetIndex);
             if (data == null)
@@ -39,6 +50,20 @@ namespace DataConverter.Core
             CodeWriter writer = new CodeWriter();
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Collections.Generic;");
+
+            // define sheet type first
+            switch (data.Format.format)
+            {
+                case FormatType.Array:
+                    writer.WriteLine($"using {typename}Data = System.Collections.Generic.List<{typename}>;");
+                    break;
+                case FormatType.KeyValuePair:                    
+                    writer.WriteLine($"using {typename}Data = System.Collections.Generic.Dictionary<{Utils.GetKeyType(data)}, {typename}>;");
+                    break;
+                default:
+                    break;
+            }
+
 
             writer.WriteLine();
 
@@ -53,7 +78,7 @@ namespace DataConverter.Core
                 if (cellName.settings.isIgnore)
                     continue;
 
-                writer.WriteLine($"public {data.Types[columnName].ClassTypeName} {cellName.fieldName} {{ get; set; }}");
+                writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.fieldName} {{ get; set; }}");
             }
 
             writer.EndBlock();
@@ -152,7 +177,7 @@ namespace DataConverter.Core
                 return value.ToString();
 
             if (type == typeof(object))
-                return JsonConvert.DeserializeObject(value.ToString(), type);
+                return JsonConvert.DeserializeObject(value.ToString(), type);            
 
             return value;
         }

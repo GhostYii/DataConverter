@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace DataConverter.Core
 {
-    public enum FormatType
+    internal enum FormatType
     {
         None = 0,
         Array,
@@ -13,7 +13,7 @@ namespace DataConverter.Core
         Object
     }
 
-    public enum ValueType
+    internal enum ValueType
     {
         Null = 0,
         Int,
@@ -25,7 +25,7 @@ namespace DataConverter.Core
     }
 
     [JsonConverter(typeof(DataFormatConverter))]
-    public struct DataFormat
+    internal struct DataFormat
     {
         public FormatType format;
         public string key;
@@ -33,7 +33,7 @@ namespace DataConverter.Core
     }
 
 
-    public class CellType
+    internal class CellType
     {
         public ValueType type = ValueType.Null;
         public CellType subType = null;
@@ -87,7 +87,7 @@ namespace DataConverter.Core
             }
         }
 
-        public string ClassTypeName
+        public string TypeName
         {
             get
             {
@@ -104,16 +104,16 @@ namespace DataConverter.Core
                     case ValueType.Object:
                         return objName;
                     case ValueType.Array:
-                        return $"List<{subType.ClassTypeName}>";
+                        return $"System.Collections.Generic.List<{subType.TypeName}>";
                     case ValueType.Map:
-                        return $"Dictionary<string, {subType.ClassTypeName}>";
+                        return $"System.Collections.Generic.Dictionary<string, {subType.TypeName}>";
                 }
                 return string.Empty;
             }
         }
     }
 
-    public struct ConverterSettings
+    internal struct ConverterSettings
     {
         // 忽略数据
         public bool isIgnore;
@@ -121,7 +121,7 @@ namespace DataConverter.Core
         public bool cantEmpty;
     }
 
-    public struct CellName
+    internal struct CellName
     {
         public string name;
         public string fieldName;
