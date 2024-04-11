@@ -17,8 +17,7 @@ namespace DataConverter.Core
         };
 
         public override bool CheckConvert(string extension)
-        {            
-
+        {
             return _supportExtensions.Contains(extension);
         }
 
@@ -29,10 +28,9 @@ namespace DataConverter.Core
 
         public override string ToCSharp(string filename, int sheetIndex, string typename)
         {
-            // support keyword name
-            //CSharpCodeProvider csProvider = new CSharpCodeProvider();
-            //if (!csProvider.IsValidIdentifier(typename))
-            //    typename = $"@{typename}";
+            // support keyword name           
+            if (!Utils.IsValidIdentifier(typename))
+                typename = $"@{typename}";
 
             ExcelData data = ExcelHelper.GetExcelData(filename, sheetIndex);
             if (data == null)

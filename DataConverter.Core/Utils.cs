@@ -1,13 +1,32 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace DataConverter.Core
 {
     internal static class Utils
     {
+        private static char[] InvaildChars = new char[]
+        {
+            '~', '!', '@', '#', '$', '%', '^', '&', '*',
+            '(', ')', '-', '=', '+', '[', '{', ']', '}',
+            ';', ':', '\'', '\"', ',', '<', '.', '>', '/', '?'
+        };
+
+        private static string[] InvaliedFieldNames = new string[]
+        {
+            "abstract", "event", "new", "struct", "as", "explicit", "null", "switch", "base", "extern",
+            "this", "false", "operator", "throw", "break", "finally", "out", "true",
+            "fixed", "override", "try", "case", "params", "typeof", "catch", "for",
+            "private", "foreach", "protected", "checked", "goto", "public",
+            "unchecked", "class", "if", "readonly", "unsafe", "const", "implicit", "ref",
+            "continue", "in", "return", "using", "virtual", "default",
+            "interface", "sealed", "volatile", "delegate", "internal", "do", "is",
+            "sizeof", "while", "lock", "stackalloc", "else", "static", "enum",
+            "namespace",
+            "object", "bool", "byte", "float", "uint", "char", "ulong", "ushort",
+            "decimal", "int", "sbyte", "short", "double", "long", "string", "void",
+            "partial",  "yield",  "where"
+        };
+
         // 字符串转变量名，失败返回null
         public static string ToFieldName(string name)
         {
@@ -16,16 +35,9 @@ namespace DataConverter.Core
             // 空名字
             if (string.IsNullOrEmpty(name))
                 return null;
-
-            char[] invaildChars = new char[]
-            {
-                '~', '!', '@', '#', '$', '%', '^', '&', '*',
-                '(', ')', '-', '=', '+', '[', '{', ']', '}',
-                ';', ':', '\'', '\"', ',', '<', '.', '>', '/', '?'
-            };
-
+            
             // 含有非法字符
-            if (name.Any((ch) => invaildChars.Contains(ch)))
+            if (name.Any((ch) => InvaildChars.Contains(ch)))
                 return null;
 
             StringBuilder sb = new StringBuilder();
@@ -58,6 +70,11 @@ namespace DataConverter.Core
                 return ValueType.Float;
 
             return ValueType.String;
+        }
+
+        public static bool IsValidIdentifier(string value)
+        {
+            return !InvaliedFieldNames.Contains(value);
         }
     }
 }
