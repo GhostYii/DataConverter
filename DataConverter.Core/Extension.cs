@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DataConverter.Core
+﻿namespace DataConverter.Core
 {
     internal static class Extension
     {

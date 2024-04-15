@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace DataConverter.Core
+﻿namespace DataConverter.Core
 {
     internal class ExcelData
     {

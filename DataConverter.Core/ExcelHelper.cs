@@ -1,10 +1,5 @@
-﻿using DocumentFormat.OpenXml.Bibliography;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SpreadsheetLight;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace DataConverter.Core
 {
