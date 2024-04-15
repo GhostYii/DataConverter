@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Media;
 using DocumentFormat.OpenXml.Spreadsheet;
+using System.Collections.Generic;
 
 namespace DataConverter
 {
@@ -28,6 +29,8 @@ namespace DataConverter
                 return arr;
 
             return new ArraySegment<T>(arr, offset, count).ToArray();
-        }        
+        }
+
+        
     }
 }

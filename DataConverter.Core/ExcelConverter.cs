@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -22,26 +23,40 @@ namespace DataConverter.Core
             return _supportExtensions.Contains(extension);
         }
 
-        public override T FromData<T>(string filename)
+        public override T FromData<T>(string json)
         {
-            return new T();
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(json);
+            }
+            catch (Exception e)
+            {
+                Console.PrintError(e.Message);
+                return default;
+            }
         }
 
         public override string ToCSharp(string filename, int sheetIndex, string typename)
         {
+            if (!CheckConvert(Path.GetExtension(filename)))
+            {
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'不支持的格式");
+                return string.Empty;
+            }
+
             if (string.IsNullOrEmpty(typename) || !Utils.IsValidTypeName(typename))
             {
-                Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetIndex}转CS文件typename({typename})无法作为变量名");
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}转CS文件typename({typename})无法作为变量名");
                 return string.Empty;
             }
 
             // number typename add '_' prefix
-            if (int.TryParse(typename.Substring(0, 1), out int _))            
-                typename = $"_{typename}";            
+            if (int.TryParse(typename.Substring(0, 1), out int _))
+                typename = $"_{typename}";
 
             // support keyword name           
             if (!Utils.IsValidIdentifier(typename))
-                typename = $"@{typename}";            
+                typename = $"@{typename}";
 
             ExcelData data = ExcelHelper.GetExcelData(filename, sheetIndex);
             if (data == null)
@@ -57,13 +72,12 @@ namespace DataConverter.Core
                 case FormatType.Array:
                     writer.WriteLine($"using {typename}Data = System.Collections.Generic.List<{typename}>;");
                     break;
-                case FormatType.KeyValuePair:                    
+                case FormatType.KeyValuePair:
                     writer.WriteLine($"using {typename}Data = System.Collections.Generic.Dictionary<{Utils.GetKeyType(data)}, {typename}>;");
                     break;
                 default:
                     break;
             }
-
 
             writer.WriteLine();
 
@@ -78,7 +92,8 @@ namespace DataConverter.Core
                 if (cellName.settings.isIgnore)
                     continue;
 
-                writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.fieldName} {{ get; set; }}");
+                writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.name};");
+                //writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.fieldName} {{ get; set; }}");
             }
 
             writer.EndBlock();
@@ -88,12 +103,24 @@ namespace DataConverter.Core
 
         public override string ToJson(string filename, int sheetIndex)
         {
+            if (!CheckConvert(Path.GetExtension(filename)))
+            {
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'不支持的格式");
+                return string.Empty;
+            }
+
             string name = ExcelHelper.GetSheetNameByIndex(filename, sheetIndex);
             return ToJson(filename, name);
         }
 
         public string ToJson(string filename, string sheetName)
         {
+            if (!CheckConvert(Path.GetExtension(filename)))
+            {
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'不支持的格式");
+                return string.Empty;
+            }
+
             ExcelData excelData = ExcelHelper.GetExcelData(filename, sheetName);
 
             if (excelData == null)
@@ -116,7 +143,7 @@ namespace DataConverter.Core
                         var keyToken = item[excelData.Format.key].ToString();
                         if (mapObj.ContainsKey(keyToken))
                         {
-                            Console.PrintError($"数据表{Path.GetFileName(filename)}表{sheetName}中" +
+                            Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'中" +
                                 $"包含重复key（{excelData.Format.key}）值{keyToken}");
                             return string.Empty;
                         }
@@ -147,41 +174,57 @@ namespace DataConverter.Core
 
                 if (name.settings.cantEmpty && cellData == null)
                 {
-                    Console.PrintError($"数据表{Path.GetFileName(data.Filename)}表{data.SheetName}中字段{name.name}" +
+                    Console.PrintError($"数据表'{Path.GetFileName(data.Filename)}'表'{data.SheetName}'中字段{name.name}" +
                         $"（位置{columnName}{rowNumber}）不得为空");
                     return null;
                 }
 
-                var type = data.Types[columnName].ToType();
-                jsonData[data.Names[columnName].name] = new JValue(To(cellData, type));
+                var type = data.Types[columnName].Type;
+                string cellName = data.Names[columnName].name;
+
+                if (cellData == null)
+                {
+                    jsonData[cellName] = data.Types[columnName].DefaultJsonValue;
+                    continue;
+                }
+                else if (type == null)
+                {
+                    jsonData[cellName] = JsonConvert.DeserializeObject(cellData?.ToString(), data.Types[columnName].JsonType) as JToken;
+                    //jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData?.ToString());
+                    //Console.Print($"GTMD----> {cellData?.ToString()}");
+                    continue;
+                }
+
+                if (type.IsValueType || type.Equals(typeof(string)))
+                    jsonData[data.Names[columnName].name] = new JValue(cellData);
+                else if (type.IsList())
+                    jsonData[cellName] = JsonConvert.DeserializeObject<JArray>(cellData.ToString());
+                else
+                    jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData.ToString());
             }
 
             return jsonData;
         }
 
-        private object To(object value, Type type)
+        private static object To(CellType type, string data)
         {
-            if (type == null)
-                return value;
+            if (type.IsValueType)
+            {
+                return new JValue(data);
+            }
+            else
+            {
+                object obj = null;
 
-            if (value == null)
-                return type.IsValueType ? Activator.CreateInstance(type) : null;
+                if (type.type == CellValueType.Array)
+                {
+                    JArray arrObj = new JArray();
 
-            if (type == typeof(int))
-                return Convert.ToInt32(value);
+                    
+                }
 
-            if (type == typeof(float))
-                return float.Parse(value.ToString());
-
-            if (type == typeof(string))
-                return value.ToString();
-
-            if (type == typeof(object))
-                return JsonConvert.DeserializeObject(value.ToString(), type);            
-
-            return value;
+                return obj;
+            }
         }
-
-
     }
 }

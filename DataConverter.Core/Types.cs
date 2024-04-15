@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DataConverter.Core
 {
@@ -13,7 +14,7 @@ namespace DataConverter.Core
         Object
     }
 
-    internal enum ValueType
+    internal enum CellValueType
     {
         Null = 0,
         Int,
@@ -35,30 +36,60 @@ namespace DataConverter.Core
 
     internal class CellType
     {
-        public ValueType type = ValueType.Null;
+        public CellValueType type = CellValueType.Null;
         public CellType subType = null;
         public string objName = string.Empty;
 
-        public static CellType Default => new CellType() { type = ValueType.Null };
+        public static CellType Default => new CellType() { type = CellValueType.Null };
 
-        public Type ToType()
+        public bool IsValueType { get => type.IsValueType(); }
+
+        public Type Type
         {
-            switch (type)
+            get
             {
-                case ValueType.Int:
-                    return typeof(int);
-                case ValueType.Float:
-                    return typeof(float);
-                case ValueType.String:
-                    return typeof(string);
-                case ValueType.Object:
-                    return Type.GetType(objName);
-                case ValueType.Array:
-                    return Type.GetType(FullTypeName);
-                case ValueType.Map:
-                    return Type.GetType(FullTypeName);
+                switch (type)
+                {
+                    case CellValueType.Int:
+                        return typeof(int);
+                    case CellValueType.Float:
+                        return typeof(float);
+                    case CellValueType.String:
+                        return typeof(string);
+                    case CellValueType.Object:
+                        return Type.GetType(objName) ?? DC.GetType(objName);
+                    case CellValueType.Array:
+                        return Type.GetType(FullTypeName);
+                    case CellValueType.Map:
+                        return Type.GetType(FullTypeName);
+                }
+                return typeof(object);
             }
-            return typeof(object);
+        }
+
+        public Type JsonType
+        {
+            get
+            {
+                switch (type)
+                {
+                    case CellValueType.Null:
+                        return typeof(JObject);
+                    case CellValueType.Int:
+                        return typeof(JValue);
+                    case CellValueType.Float:
+                        return typeof(JValue);
+                    case CellValueType.String:
+                        return typeof(JValue);
+                    case CellValueType.Object:
+                        return typeof(JObject);
+                    case CellValueType.Array:
+                        return typeof(JArray);
+                    case CellValueType.Map:
+                        return typeof(JObject);
+                }
+                return typeof(JToken);
+            }
         }
 
         // dictionary key's type can only be string
@@ -68,19 +99,19 @@ namespace DataConverter.Core
             {
                 switch (type)
                 {
-                    case ValueType.Null:
+                    case CellValueType.Null:
                         return null;     // Error Case
-                    case ValueType.Int:
+                    case CellValueType.Int:
+                        return typeof(int).FullName;
+                    case CellValueType.Float:
                         return typeof(float).FullName;
-                    case ValueType.Float:
-                        return typeof(float).FullName;
-                    case ValueType.String:
+                    case CellValueType.String:
                         return typeof(string).FullName;
-                    case ValueType.Object:
+                    case CellValueType.Object:
                         return objName;
-                    case ValueType.Array:
+                    case CellValueType.Array:
                         return $"System.Collections.Generic.List`1[{subType.FullTypeName}]";
-                    case ValueType.Map:
+                    case CellValueType.Map:
                         return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.FullTypeName}]";
                 }
                 return typeof(object).FullName;
@@ -93,22 +124,45 @@ namespace DataConverter.Core
             {
                 switch (type)
                 {
-                    case ValueType.Null:
+                    case CellValueType.Null:
                         return string.Empty;
-                    case ValueType.Int:
+                    case CellValueType.Int:
                         return "int";
-                    case ValueType.Float:
+                    case CellValueType.Float:
                         return "float";
-                    case ValueType.String:
+                    case CellValueType.String:
                         return "string";
-                    case ValueType.Object:
+                    case CellValueType.Object:
                         return objName;
-                    case ValueType.Array:
-                        return $"System.Collections.Generic.List<{subType.TypeName}>";
-                    case ValueType.Map:
-                        return $"System.Collections.Generic.Dictionary<string, {subType.TypeName}>";
+                    case CellValueType.Array:
+                        return $"List<{subType.TypeName}>";
+                    case CellValueType.Map:
+                        return $"Dictionary<string, {subType.TypeName}>";
                 }
                 return string.Empty;
+            }
+        }
+
+        public JToken DefaultJsonValue
+        {
+            get
+            {
+                switch (type)
+                {
+                    case CellValueType.Int:
+                        return new JValue(0);
+                    case CellValueType.Float:
+                        return new JValue(0f);
+                    case CellValueType.String:
+                        return new JValue(string.Empty);
+                    case CellValueType.Object:
+                        return new JObject();
+                    case CellValueType.Array:
+                        return new JArray();
+                    case CellValueType.Map:
+                        return new JObject();                    
+                }
+                return new JObject();
             }
         }
     }

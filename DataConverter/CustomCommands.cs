@@ -1,5 +1,7 @@
 ﻿using DataConverter;
 using DataConverter.Core;
+using System.Collections.Generic;
+using System.IO;
 
 namespace DataConverter
 {
@@ -76,23 +78,16 @@ namespace DataConverter
             }
         }
 
-        [CMD("test")]
-        private static void Test()
+        [CMD("sds")]
+        private static void SeAndDeSe(string filename, int sheetIndex)
         {
             ExcelConverter ec = new ExcelConverter();
-            string json = ec.ToCSharp("测试表格.xlsx", 0, "test");
-            Console.Print(json);
+            string json = ec.ToJson(filename, sheetIndex);
+
+            var obj = ec.FromData<List<GoodArray>>(json);
+            
+            Console.Print($"{obj}");
         }
 
-    }
-
-    [System.Serializable]
-    public class TestObject
-    {
-        public int num;
-        public float percent;
-        public string text;
-
-        //public System.Collections.Generic.List<int> list;
     }
 }

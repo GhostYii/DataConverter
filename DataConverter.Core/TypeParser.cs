@@ -96,37 +96,37 @@ namespace DataConverter.Core
         [ExcelTypeParser("int")]
         private static CellType IntParser(string type, string subType)
         {
-            return new CellType { type = ValueType.Int };
+            return new CellType { type = CellValueType.Int };
         }
 
         [ExcelTypeParser("float")]
         private static CellType FloatParser(string type, string subType)
         {
-            return new CellType { type = ValueType.Float };
+            return new CellType { type = CellValueType.Float };
         }
 
         [ExcelTypeParser("string", "str")]
         private static CellType StringParser(string type, string subType)
         {
-            return new CellType { type = ValueType.String };
+            return new CellType { type = CellValueType.String };
         }
 
         [ExcelTypeParser("object", "obj")]
         private static CellType ObjectParser(string type, string subType)
         {
-            return new CellType { type = ValueType.Object, objName = subType };
+            return new CellType { type = CellValueType.Object, objName = subType };
         }
 
         [ExcelTypeParser("array", "arr", "list")]
         private static CellType ArrayParser(string type, string subType)
         {
-            return new CellType { type = ValueType.Array, subType = Parse(subType) };
+            return new CellType { type = CellValueType.Array, subType = Parse(subType) };
         }
 
         [ExcelTypeParser("map", "dict", "pairs", "hash")]
         private static CellType DictionaryParser(string type, string subType)
         {
-            return new CellType { type = ValueType.Map, subType = Parse(subType) };
+            return new CellType { type = CellValueType.Map, subType = Parse(subType) };
         }
 
     }

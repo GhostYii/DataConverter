@@ -23,7 +23,9 @@ namespace DataConverter
 
             DataConverter.Core.Console.AddPrintListener(Console.Print);
             DataConverter.Core.Console.AddWarningListener(Console.PrintWarning);
-            DataConverter.Core.Console.AddErrorListener(Console.PrintError);            
+            DataConverter.Core.Console.AddErrorListener(Console.PrintError);
+
+            DataConverter.Core.DC.RegisterTypes(typeof(TestObject));
         }
     }
 }

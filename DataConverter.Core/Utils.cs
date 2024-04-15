@@ -61,16 +61,16 @@ namespace DataConverter.Core
         }
 
         // 自动分析类型
-        public static ValueType TryParseValueType(object value)
+        public static CellValueType TryParseValueType(object value)
         {
             string strValue = value.ToString();
             if (int.TryParse(strValue, out int intRes))
-                return ValueType.Int;
+                return CellValueType.Int;
 
             if (float.TryParse(strValue, out float floatRes))
-                return ValueType.Float;
+                return CellValueType.Float;
 
-            return ValueType.String;
+            return CellValueType.String;
         }
 
         // 名称是否包含非法字符
