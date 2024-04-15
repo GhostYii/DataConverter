@@ -204,27 +204,6 @@ namespace DataConverter.Core
             }
 
             return jsonData;
-        }
-
-        private static object To(CellType type, string data)
-        {
-            if (type.IsValueType)
-            {
-                return new JValue(data);
-            }
-            else
-            {
-                object obj = null;
-
-                if (type.type == CellValueType.Array)
-                {
-                    JArray arrObj = new JArray();
-
-                    
-                }
-
-                return obj;
-            }
-        }
+        }        
     }
 }
