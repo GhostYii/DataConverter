@@ -64,7 +64,7 @@ namespace DataConverter
         {
             Console.Print("");
             ExcelConverter ec = new ExcelConverter();
-            var names = ExcelHelper.GetWorkshetNames("测试表格.xlsx");
+            var names = ExcelHelper.GetWorksheetNames("测试表格.xlsx");
 
             int id = 0;
             foreach (var name in names)

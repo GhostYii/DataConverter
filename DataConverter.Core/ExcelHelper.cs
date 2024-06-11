@@ -89,7 +89,7 @@ namespace DataConverter.Core
         }
 
         // 获取数据表所有表格名称
-        public static string[] GetWorkshetNames(string filename)
+        public static string[] GetWorksheetNames(string filename)
         {
             try
             {
