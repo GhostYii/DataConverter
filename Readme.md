@@ -3,7 +3,7 @@
 # DCT是什么?
 
 DCT是使用CSharp语言编写的一套可用于游戏中的数据表导入工具，其中主要的工作流为Excel->Json->C# Class/Struct。
-其中Excel的解析是基于[SpreadsheetLight库](https://spreadsheetlight.com/)实现的，而Json的部分则是基于[Newtonsoft.Json](https://www.newtonsoft.com/json)来搞的，我只做了一点微小的工作。
+其中Excel的解析是基于[SpreadsheetLight库](https://spreadsheetlight.com/)实现的，而Json的部分则是基于[Newtonsoft.Json](https://www.newtonsoft.com/json)来搞的，Bson的部分是基于[MongoDB.bson](https://github.com/mongodb/mongo-csharp-driver/tree/master/src/MongoDB.Bson)搞的，我只做了一点微小的工作。
 
 # 如何使用？
 
