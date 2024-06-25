@@ -14,6 +14,7 @@ namespace DataConverter.Core
     internal enum CellValueType
     {
         Null = 0,
+        Bool,
         Int,
         Float,
         String,
@@ -47,6 +48,8 @@ namespace DataConverter.Core
             {
                 switch (type)
                 {
+                    case CellValueType.Bool:
+                        return typeof(bool);
                     case CellValueType.Int:
                         return typeof(int);
                     case CellValueType.Float:
@@ -72,6 +75,8 @@ namespace DataConverter.Core
                 {
                     case CellValueType.Null:
                         return typeof(JObject);
+                    case CellValueType.Bool:
+                        return typeof(JValue);
                     case CellValueType.Int:
                         return typeof(JValue);
                     case CellValueType.Float:
@@ -98,6 +103,8 @@ namespace DataConverter.Core
                 {
                     case CellValueType.Null:
                         return null;     // Error Case
+                    case CellValueType.Bool:
+                        return typeof(bool).FullName;
                     case CellValueType.Int:
                         return typeof(int).FullName;
                     case CellValueType.Float:
@@ -123,6 +130,8 @@ namespace DataConverter.Core
                 {
                     case CellValueType.Null:
                         return string.Empty;
+                    case CellValueType.Bool:
+                        return "bool";
                     case CellValueType.Int:
                         return "int";
                     case CellValueType.Float:
@@ -146,6 +155,8 @@ namespace DataConverter.Core
             {
                 switch (type)
                 {
+                    case CellValueType.Bool:
+                        return new JValue(false);
                     case CellValueType.Int:
                         return new JValue(0);
                     case CellValueType.Float:
@@ -157,7 +168,7 @@ namespace DataConverter.Core
                     case CellValueType.Array:
                         return new JArray();
                     case CellValueType.Map:
-                        return new JObject();                    
+                        return new JObject();
                 }
                 return new JObject();
             }

@@ -17,7 +17,10 @@
         /// </summary>
         public static bool IsValueType(this CellValueType val)
         {
-            return val == CellValueType.Int || val == CellValueType.Float || val == CellValueType.String;
+            return val == CellValueType.Bool ||
+                   val == CellValueType.Int ||
+                   val == CellValueType.Float ||
+                   val == CellValueType.String;
         }
 
     }

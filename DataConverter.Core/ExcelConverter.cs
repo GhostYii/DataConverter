@@ -1,7 +1,4 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DataConverter.Core
@@ -225,7 +222,10 @@ namespace DataConverter.Core
                     continue;
                 }
 
-                if (type.IsValueType || type.Equals(typeof(string)))
+                // special for boolean
+                if (type.Equals(typeof(bool)))
+                    jsonData[data.Names[columnName].name] = new JValue(Utils.ParseToBool(cellData));                
+                else if (type.IsValueType || type.Equals(typeof(string)))
                     jsonData[data.Names[columnName].name] = new JValue(cellData);
                 else if (type.IsList())
                     jsonData[cellName] = JsonConvert.DeserializeObject<JArray>(cellData.ToString());

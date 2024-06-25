@@ -104,6 +104,12 @@ namespace DataConverter.Core
             return new CellType { type = CellValueType.Float };
         }
 
+        [ExcelTypeParser("bool", "boolean")]
+        private static CellType BoolParser(string type, string subType)
+        {
+            return new CellType { type = CellValueType.Bool };
+        }
+
         [ExcelTypeParser("string", "str")]
         private static CellType StringParser(string type, string subType)
         {

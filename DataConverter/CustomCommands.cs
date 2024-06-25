@@ -69,7 +69,7 @@ namespace DataConverter
             int id = 0;
             foreach (var name in names)
             {
-                string cs = ec.ToCSharp("测试表格.xlsx", id++, name);
+                string cs = ec.ToCSharp("测试表格.xlsx", id++, name, string.Empty);
                 if (string.IsNullOrEmpty(cs))
                     continue;
 

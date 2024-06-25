@@ -63,6 +63,9 @@ namespace DataConverter.Core
         public static CellValueType TryParseValueType(object value)
         {
             string strValue = value.ToString();
+            if (bool.TryParse(strValue, out bool boolRes))
+                return CellValueType.Bool;
+
             if (int.TryParse(strValue, out int intRes))
                 return CellValueType.Int;
 
@@ -104,6 +107,22 @@ namespace DataConverter.Core
                 return type.TypeName;
 
             return "object";
+        }
+
+        // 表格中的布尔值判断逻辑
+        public static bool ParseToBool(object value)
+        {
+            if(value == null)            
+                return false;
+
+            string strValue = value.ToString();          
+            if (bool.TryParse(strValue, out bool result))
+                return result;
+            
+            if (int.TryParse(strValue, out int intRes))            
+                return intRes != 0;
+            
+            return false;
         }
     }
 }
