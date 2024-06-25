@@ -32,7 +32,7 @@ namespace DataConverter.Core
             }
         }
 
-        public override string ToCSharp(string filename, int sheetIndex, string typename)
+        public override string ToCSharp(string filename, int sheetIndex, string typename, string nameSpace)
         {
             if (!CheckConvert(Path.GetExtension(filename)))
             {
@@ -62,17 +62,48 @@ namespace DataConverter.Core
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Collections.Generic;");
 
-            // define sheet type first
-            switch (data.Format.format)
+            if (!string.IsNullOrEmpty(nameSpace))
             {
-                case FormatType.Array:
-                    writer.WriteLine($"using {typename}Data = System.Collections.Generic.List<{typename}>;");
-                    break;
-                case FormatType.KeyValuePair:
-                    writer.WriteLine($"using {typename}Data = System.Collections.Generic.Dictionary<{Utils.GetKeyType(data)}, {typename}>;");
-                    break;
-                default:
-                    break;
+                writer.WriteLine();
+
+                // number typename add '_' prefix
+                if (int.TryParse(nameSpace.Substring(0, 1), out int _))
+                    nameSpace = $"_{nameSpace}";
+
+                // support keyword name           
+                if (!Utils.IsValidIdentifier(nameSpace))
+                    nameSpace = $"@{nameSpace}";
+
+                writer.WriteLine($"namespace {nameSpace}");
+                writer.BeginBlock();
+
+                // define sheet type first
+                switch (data.Format.format)
+                {
+                    case FormatType.Array:
+                        writer.WriteLine($"using {typename}Data = List<{typename}>;");
+                        break;
+                    case FormatType.KeyValuePair:
+                        writer.WriteLine($"using {typename}Data = Dictionary<{Utils.GetKeyType(data)}, {typename}>;");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                // define sheet type first
+                switch (data.Format.format)
+                {
+                    case FormatType.Array:
+                        writer.WriteLine($"using {typename}Data = System.Collections.Generic.List<{typename}>;");
+                        break;
+                    case FormatType.KeyValuePair:
+                        writer.WriteLine($"using {typename}Data = System.Collections.Generic.Dictionary<{Utils.GetKeyType(data)}, {typename}>;");
+                        break;
+                    default:
+                        break;
+                }
             }
 
             writer.WriteLine();
@@ -93,6 +124,9 @@ namespace DataConverter.Core
             }
 
             writer.EndBlock();
+
+            if (!string.IsNullOrEmpty(nameSpace))
+                writer.EndBlock();
 
             return writer.ToString();
         }

@@ -1,5 +1,7 @@
 ﻿using DataConverter.Core;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text;
+using System.Xml.Linq;
 
 namespace DataConverter.CLI
 {
@@ -142,6 +144,30 @@ namespace DataConverter.CLI
             byte[] bson = BsonConverter.ExcelToBson(filename, sheetName);
             File.WriteAllBytes(savePath, bson);
             Console.WriteLine($"{filename}/{sheetName} convert to {savePath}");
+        }
+
+        [CMD("dir_to_cs")]
+        private static void DirToCs(string dir, string nameSpace, string saveDir)
+        {
+            dir = Path.GetFullPath(dir);
+
+            if (string.IsNullOrEmpty(saveDir))
+                saveDir = dir;
+            else
+                saveDir = Path.GetFullPath(saveDir);
+
+            var files = Directory.GetFiles(dir, "*.xlsx");
+            foreach (var file in files)
+            {
+                var sheets = ExcelHelper.GetWorksheetNames(file);
+                for (int i = 0; i < sheets.Length; i++)
+                {
+                    string cs = _convert.ToCSharp(file, i, sheets[i], nameSpace);
+                    string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{sheets[i]}.cs");
+                    File.WriteAllText(savePath, cs);
+                    Console.WriteLine($"{file}/{sheets[i]} convert to {savePath}");
+                }
+            }
         }
 
         [CMD]
