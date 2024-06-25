@@ -217,6 +217,31 @@ namespace DataConverter.CLI
 
         #region build-in commands
 
+        [CMD("all", "show all cmds")]
+        private static void All()
+        {
+            foreach (var (name, cmds) in _cmds)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"command \"{name}\"");
+                foreach (var cmd in cmds)
+                {
+                    sb.AppendFormat("- {0}(", name);
+
+                    for (int i = 0; i < cmd.method.GetParameters().Length; i++)
+                    {
+                        var paramInfo = cmd.method.GetParameters()[i];
+                        sb.AppendFormat("{0} {1}", paramInfo.ParameterType.Name, paramInfo.Name);
+
+                        if (i != cmd.method.GetParameters().Length - 1)
+                            sb.Append(", ");
+                    }
+                    sb.Append(")\n");
+                }
+                Console.WriteLine(sb.ToString());
+            }
+        }
+
         [CMD("help", "show tip message"), CMD("man", "show tip message")]
         private static void Help(string cmdName)
         {

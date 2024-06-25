@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using Newtonsoft.Json.Linq;
 
 namespace DataConverter.Core
@@ -197,6 +200,8 @@ namespace DataConverter.Core
             }
 
             return jsonData;
-        }        
+        }
+
+        
     }
 }
