@@ -109,7 +109,11 @@ namespace DataConverter.CLI
                 foreach (var name in sheets)
                 {
                     string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.json");
-                    File.WriteAllText(savePath, _convert.ToJson(file, name));
+                    string json = _convert.ToJson(file, name);
+                    if (string.IsNullOrEmpty(json))
+                        continue;
+
+                    File.WriteAllText(savePath, json);
                     Console.WriteLine($"{file}/{name} convert to {savePath}");
                 }
             }
@@ -130,7 +134,11 @@ namespace DataConverter.CLI
             foreach (var name in sheets)
             {
                 string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(filename)}.{name}.json");
-                File.WriteAllText(savePath, _convert.ToJson(filename, name));
+                string json = _convert.ToJson(filename, name);
+                if (string.IsNullOrEmpty(json))
+                    continue;
+                
+                File.WriteAllText(savePath, json);
                 Console.WriteLine($"{filename}/{name} convert to {savePath}");
             }
         }
@@ -163,6 +171,8 @@ namespace DataConverter.CLI
                 for (int i = 0; i < sheets.Length; i++)
                 {
                     string cs = _convert.ToCSharp(file, i, sheets[i], nameSpace);
+                    if (string.IsNullOrEmpty(cs))
+                        continue;
                     string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{sheets[i]}.cs");
                     File.WriteAllText(savePath, cs);
                     Console.WriteLine($"{file}/{sheets[i]} convert to {savePath}");
