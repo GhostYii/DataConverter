@@ -94,11 +94,11 @@ namespace DataConverter.Core
                 return "object";
 
             string columnNumber = string.Empty;
-            foreach (var pair in data.Names)
+            foreach (var (colNum, fmt) in data.Names)
             {
-                if (pair.Value.name == data.Format.key)
+                if (fmt.name == data.Format.key)
                 {
-                    columnNumber = pair.Key;
+                    columnNumber = colNum;
                     break;
                 }
             }

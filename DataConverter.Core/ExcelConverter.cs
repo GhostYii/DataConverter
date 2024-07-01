@@ -108,11 +108,8 @@ namespace DataConverter.Core
             writer.WriteLine($"public struct {typename}");
             writer.BeginBlock();
 
-            foreach (var pair in data.Names)
+            foreach (var (columnName, cellName) in data.Names)
             {
-                string columnName = pair.Key;
-                var cellName = pair.Value;
-
                 if (cellName.settings.isIgnore)
                     continue;
 
@@ -157,16 +154,16 @@ namespace DataConverter.Core
             {
                 case FormatType.Array:
                     JArray array = new JArray();
-                    foreach (var dataPair in excelData.Datas)
+                    foreach (var (row, _) in excelData.Datas)
                     {
-                        array.Add(ToJsonObject(excelData, dataPair.Key));
+                        array.Add(ToJsonObject(excelData, row));
                     }
                     return JsonConvert.SerializeObject(array);
                 case FormatType.KeyValuePair:
                     JObject mapObj = new JObject();
-                    foreach (var dataPair in excelData.Datas)
+                    foreach (var (row, _) in excelData.Datas)
                     {
-                        var item = ToJsonObject(excelData, dataPair.Key);
+                        var item = ToJsonObject(excelData, row);
                         var keyToken = item[excelData.Format.key].ToString();
                         if (mapObj.ContainsKey(keyToken))
                         {
@@ -176,7 +173,7 @@ namespace DataConverter.Core
                         }
                         mapObj[keyToken] = item;
                     }
-                    return JsonConvert.SerializeObject(mapObj);
+                    return JsonConvert.SerializeObject(mapObj);               
             }
 
             return string.Empty;
@@ -190,11 +187,8 @@ namespace DataConverter.Core
 
             var rowData = data.Datas[rowNumber];
 
-            foreach (var cellPair in rowData)
+            foreach (var (columnName, cellData) in rowData)
             {
-                var columnName = cellPair.Key;
-                var cellData = cellPair.Value;
-
                 var name = data.Names[columnName];
                 if (name.settings.isIgnore)
                     continue;

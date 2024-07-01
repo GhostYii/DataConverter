@@ -10,6 +10,8 @@
         public DataFormat Format { get; internal set; }
         public Dictionary<string, CellName> Names { get; internal set; }
         public Dictionary<string, CellType> Types { get; internal set; }
-        public Dictionary<int, Dictionary<string, object>> Datas { get; internal set; }        
+
+        // { rowNumber : { columnName : value } }
+        public Dictionary<int, Dictionary<string, object>> Datas { get; internal set; }
     }
 }

@@ -293,7 +293,7 @@ namespace DataConverter.Core
 
             return GetExcelData(filename, GetSheetIndexByName(filename, sheetName));
 
-        }        
+        }
 
         private static ExcelDocument GetWorksheet(string filename, int sheetIndex = 0)
         {
@@ -347,24 +347,22 @@ namespace DataConverter.Core
             //    return sheet.GetCells();
 
             Rows rows = new Rows();
-            foreach (var pair in sheet.GetCells())
+            foreach (var (rowNumber, data) in sheet.GetCells())
             {
-                string firstCellValue = sheet.GetCellValueAsString($"A{pair.Key}");
+                string firstCellValue = sheet.GetCellValueAsString($"A{rowNumber}");
                 bool isNote = firstCellValue.Trim().StartsWith(Const.NOTE_PREFIX);
 
                 if (isNote)
                     continue;
 
                 Row row = new Row();
-                foreach (var cellInfo in pair.Value)
-                {
-                    int columnIndex = cellInfo.Key;
-                    var cell = cellInfo.Value;
-                    cell.CellText = sheet.GetCellValueAsString(pair.Key, columnIndex);
+                foreach (var (columnIndex, cell) in data)
+                {                    
+                    cell.CellText = sheet.GetCellValueAsString(rowNumber, columnIndex);
                     row[columnIndex] = cell;
                 }
 
-                rows[pair.Key] = row;
+                rows[rowNumber] = row;
             }
 
             return rows;
@@ -394,12 +392,9 @@ namespace DataConverter.Core
             int rowIndex = target.Key;
             Row row = target.Value;
 
-            foreach (var pair in row)
+            foreach (var (columnIndex, cell) in row)
             {
-                int columnIndex = pair.Key;
                 string columnName = SLConvert.ToColumnName(columnIndex);
-                SLCell cell = pair.Value;
-
                 string cellStr = cell.CellText.Trim();
 
                 if (string.IsNullOrEmpty(cellStr))
@@ -446,11 +441,9 @@ namespace DataConverter.Core
             Row row = target.Value;
 
             DataTypeDict result = new DataTypeDict();
-            foreach (var pair in row)
-            {
-                int columnIndex = pair.Key;
-                string columnName = SLConvert.ToColumnName(columnIndex);
-                var cell = pair.Value;
+            foreach (var (columnIndex, cell) in row)
+            {                
+                string columnName = SLConvert.ToColumnName(columnIndex);                
 
                 string cellStr = cell.CellText.Trim();
                 if (string.IsNullOrEmpty(cellStr))
@@ -482,12 +475,9 @@ namespace DataConverter.Core
 
                 if (columnNames == null)
                 {
-                    foreach (var cellInfo in row)
-                    {
-                        int columnIndex = cellInfo.Key;
+                    foreach (var (columnIndex, cell) in row)
+                    {                        
                         string columnName = SLConvert.ToColumnName(columnIndex);
-                        var cell = cellInfo.Value;
-
                         rowData[columnName] = cell.CellText;
                     }
                 }
