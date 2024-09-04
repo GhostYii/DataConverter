@@ -7,8 +7,14 @@ namespace DataConverter.Core
     {
         None = 0,
         Array,
-        KeyValuePair,
-        Object
+        KeyValuePair
+    }
+
+    internal enum ObjectType
+    {
+        None = 0,
+        Struct,
+        Class
     }
 
     internal enum CellValueType
@@ -20,15 +26,17 @@ namespace DataConverter.Core
         String,
         Object,
         Array,
-        Map,
+        Map
     }
 
-    [JsonConverter(typeof(DataFormatConverter))]
-    internal struct DataFormat
+    [JsonConverter(typeof(DataConfigConverter))]
+    internal struct DataConfig
     {
         public FormatType format;
         public string key;
         public string type;
+        public ObjectType objectType;
+        public string objectName;
     }
 
 

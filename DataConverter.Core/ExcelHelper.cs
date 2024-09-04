@@ -155,10 +155,10 @@ namespace DataConverter.Core
 
         #region Internal
 
-        // 获取表格数据格式
-        internal static DataFormat GetDataFormat(string filename, int sheetIndex = 0)
+        // 获取表格数据配置
+        internal static DataConfig GetDataConfig(string filename, int sheetIndex = 0)
         {
-            DataFormat result = new DataFormat() { format = FormatType.None };
+            DataConfig result = new DataConfig() { format = FormatType.None };
             if (!CheckValid(filename, sheetIndex))
                 return result;
 
@@ -169,24 +169,24 @@ namespace DataConverter.Core
                 return result;
             }
 
-            var fmt = GetDataFormat(rows);
+            var fmt = GetDataConfig(rows);
             if (fmt.HasValue && fmt.Value.format == FormatType.None)
                 Console.PrintError($"数据表'{Path.GetFileName(filename)}'第{sheetIndex}张表配置了不支持的格式");
             else
-                Console.PrintError($"数据表'{Path.GetFileName(filename)}'第{Const.ROW_LINE_NUM_FORMAT}个有效行不是格式控制字段");
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'第{Const.ROW_LINE_NUM_CONFIG}个有效行不是配置控制字段");
 
             return fmt ?? result;
         }
-        internal static DataFormat GetDataFormat(string filename, string sheetName)
+        internal static DataConfig GetDataFormat(string filename, string sheetName)
         {
-            DataFormat defaultFmt = new DataFormat() { format = FormatType.None };
+            DataConfig defaultFmt = new DataConfig() { format = FormatType.None };
             if (!CheckValid(filename, sheetName))
                 return defaultFmt;
 
             if (!File.Exists(filename))
                 return defaultFmt;
 
-            return GetDataFormat(filename, GetSheetIndexByName(filename, sheetName));
+            return GetDataConfig(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         // 获取表格数据名称
@@ -258,23 +258,23 @@ namespace DataConverter.Core
 
             Rows rows = GetValidRows(filename, sheetIndex);
 
-            var fmt = GetDataFormat(rows);
-            if (fmt.HasValue)
+            var cfg = GetDataConfig(rows);
+            if (cfg.HasValue)
             {
                 ExcelData data = new ExcelData();
                 data.Filename = filename;
                 data.SheetIndex = sheetIndex;
                 data.SheetName = GetSheetNameByIndex(filename, sheetIndex);
-                data.Format = fmt.Value;
+                data.Config = cfg.Value;
                 data.Types = GetTypes(rows, filename, sheetIndex);
                 data.Names = GetNames(rows, filename, sheetIndex);
                 data.Datas = GetTableData(rows, data.Names.Keys);
                 data.DataBeginRowNumber = rows.Count <= Const.ROW_LINE_NUM_DATA ? 0 :
                     rows.ElementAt(Const.ROW_LINE_NUM_DATA).Key;
 
-                if (data.Format.format == FormatType.KeyValuePair)
+                if (data.Config.format == FormatType.KeyValuePair)
                 {
-                    string pos = data.Names.First(pair => pair.Value.name == data.Format.key).Key;
+                    string pos = data.Names.First(pair => pair.Value.name == data.Config.key).Key;
                     if (!data.Types[pos].type.IsValueType())
                         Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}字典键非值类型");
                 }
@@ -357,7 +357,7 @@ namespace DataConverter.Core
 
                 Row row = new Row();
                 foreach (var (columnIndex, cell) in data)
-                {                    
+                {
                     cell.CellText = sheet.GetCellValueAsString(rowNumber, columnIndex);
                     row[columnIndex] = cell;
                 }
@@ -368,13 +368,13 @@ namespace DataConverter.Core
             return rows;
         }
 
-        private static DataFormat? GetDataFormat(Rows rows)
+        private static DataConfig? GetDataConfig(Rows rows)
         {
-            var row = rows.ElementAt(Const.ROW_LINE_NUM_FORMAT).Value;
+            var row = rows.ElementAt(Const.ROW_LINE_NUM_CONFIG).Value;
             string fmtStr = row.Values.First().CellText.Trim();
             try
             {
-                var result = JsonConvert.DeserializeObject<DataFormat>(fmtStr);
+                var result = JsonConvert.DeserializeObject<DataConfig>(fmtStr);
                 return result;
             }
             catch
@@ -442,8 +442,8 @@ namespace DataConverter.Core
 
             DataTypeDict result = new DataTypeDict();
             foreach (var (columnIndex, cell) in row)
-            {                
-                string columnName = SLConvert.ToColumnName(columnIndex);                
+            {
+                string columnName = SLConvert.ToColumnName(columnIndex);
 
                 string cellStr = cell.CellText.Trim();
                 if (string.IsNullOrEmpty(cellStr))
@@ -476,7 +476,7 @@ namespace DataConverter.Core
                 if (columnNames == null)
                 {
                     foreach (var (columnIndex, cell) in row)
-                    {                        
+                    {
                         string columnName = SLConvert.ToColumnName(columnIndex);
                         rowData[columnName] = cell.CellText;
                     }

@@ -1,14 +1,13 @@
 ﻿using DataConverter.Core;
-using DocumentFormat.OpenXml.Wordprocessing;
+using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
 
 namespace DataConverter.CLI
 {
     using Console = System.Console;
     public class CLI
     {
-        private static string _Version => "0.0.1";
+        private static string _Version => Assembly.GetExecutingAssembly().GetName().Version.ToString();
         private static ExcelConverter _convert = new ExcelConverter();
 
         public static void Main(params string[] args)
@@ -18,7 +17,7 @@ namespace DataConverter.CLI
 
             Core.Console.AddPrintListener(msg => { Console.ResetColor(); Console.WriteLine(msg); });
             Core.Console.AddErrorListener(msg => { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(msg); Console.ResetColor(); });
-            Core.Console.AddWarningListener(msg => { Console.ForegroundColor = ConsoleColor.Yellow; Console.WriteLine(msg); Console.ResetColor(); });            
+            Core.Console.AddWarningListener(msg => { Console.ForegroundColor = ConsoleColor.Yellow; Console.WriteLine(msg); Console.ResetColor(); });
 
             if (args.Length >= 1)
             {
@@ -137,7 +136,7 @@ namespace DataConverter.CLI
                 string json = _convert.ToJson(filename, name);
                 if (string.IsNullOrEmpty(json))
                     continue;
-                
+
                 File.WriteAllText(savePath, json);
                 Console.WriteLine($"{filename}/{name} convert to {savePath}");
             }
@@ -152,6 +151,33 @@ namespace DataConverter.CLI
             byte[] bson = BsonConverter.ExcelToBson(filename, sheetName);
             File.WriteAllBytes(savePath, bson);
             Console.WriteLine($"{filename}/{sheetName} convert to {savePath}");
+        }
+
+        [CMD("to_cs")]
+        private static void ToCS(string filename, string nameSpace, string saveDir)
+        {
+            if (Path.GetExtension(filename) != ".xlsx")
+            {
+                Console.WriteLine("only .xlsx file support.");
+                return;
+            }
+
+            if (!File.Exists(filename))
+            {
+                Console.WriteLine($"{filename} dont exist.");
+                return;
+            }
+
+            var sheets = ExcelHelper.GetWorksheetNames(filename);
+            for (int i = 0; i < sheets.Length; i++)
+            {
+                string cs = _convert.ToCSharp(filename, i, sheets[i], nameSpace);
+                if (string.IsNullOrEmpty(cs))
+                    continue;
+                string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(filename)}.{sheets[i]}.cs");
+                File.WriteAllText(savePath, cs);
+                Console.WriteLine($"{filename}/{sheets[i]} convert to {savePath}");
+            }
         }
 
         [CMD("dir_to_cs")]

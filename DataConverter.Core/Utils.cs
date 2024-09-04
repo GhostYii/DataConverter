@@ -90,13 +90,13 @@ namespace DataConverter.Core
         // 获取字典数据中键的类型，失败返回object
         public static string GetKeyType(ExcelData data)
         {
-            if (data == null || data.Format.format != FormatType.KeyValuePair)
+            if (data == null || data.Config.format != FormatType.KeyValuePair)
                 return "object";
 
             string columnNumber = string.Empty;
             foreach (var (colNum, fmt) in data.Names)
             {
-                if (fmt.name == data.Format.key)
+                if (fmt.name == data.Config.key)
                 {
                     columnNumber = colNum;
                     break;

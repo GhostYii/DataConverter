@@ -1,30 +1,34 @@
-﻿using System;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DataConverter.Core
 {
-    internal class DataFormatConverter : JsonConverter
+    internal class DataConfigConverter : JsonConverter
     {
         public override bool CanWrite => false;
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(DataFormat);
+            return objectType == typeof(DataConfig);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            DataFormat result = new DataFormat()
+            DataConfig result = new DataConfig()
             {
                 format = FormatType.None,
                 key = string.Empty,
-                type = string.Empty
+                type = string.Empty,
+                objectType = ObjectType.None,
+                objectName = string.Empty
             };
 
             JObject jsonObj = serializer.Deserialize<JObject>(reader);
             switch (jsonObj.Value<string>("format").ToLower())
             {
+                case "arr":
+                    result.format = FormatType.Array;
+                    break;
                 case "array":
                     result.format = FormatType.Array;
                     break;
@@ -32,25 +36,29 @@ namespace DataConverter.Core
                     result.format = FormatType.KeyValuePair;
                     result.key = jsonObj.Value<string>("key");
                     break;
-                case "object":
-                    result.format = FormatType.Object;
-                    result.type = jsonObj.Value<string>("type");
-                    break;
-                case "obj":
-                    result.format = FormatType.Object;
-                    result.type = jsonObj.Value<string>("type");
-                    break;
                 default:
                     result.format = FormatType.None;
                     break;
-            }            
+            }
+
+            // default generate struct
+            string objTypeStr = jsonObj.Value<string>("code_type");
+            if (!string.IsNullOrEmpty(objTypeStr))
+            {
+                objTypeStr = objTypeStr.Trim().ToLower();
+                objTypeStr = $"{char.ToUpper(objTypeStr[0])}{objTypeStr.Substring(1, objTypeStr.Length - 1)}";
+            }
+            if (!Enum.TryParse(objTypeStr, out result.objectType))
+                result.objectType = ObjectType.Struct;
+
+            result.objectName = jsonObj.Value<string>("obj_name") ?? string.Empty;
 
             return result;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            return;                
+            return;
         }
     }
 }
