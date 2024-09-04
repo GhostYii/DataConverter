@@ -119,16 +119,10 @@ namespace DataConverter.Core
                 }
             }
 
-            string codeType = "Struct";
-            switch (data.Config.objectType)
-            {
-                case ObjectType.Struct:
-                    codeType = "Struct";
-                    break;
-                case ObjectType.Class:
-                    codeType = "Class";
-                    break;
-            }
+            string codeType = data.Config.objectType.ToString().ToLower();
+            // default use struct to avoid gc
+            if (string.IsNullOrEmpty(codeType) || codeType == "none")
+                codeType = "struct";
 
             writer.WriteLine($"public {codeType} {typename}");
             writer.BeginBlock();

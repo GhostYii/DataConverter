@@ -42,7 +42,7 @@ namespace DataConverter.Core
             }
 
             // default generate struct
-            string objTypeStr = jsonObj.Value<string>("code_type");
+            string objTypeStr = jsonObj.Value<string>("obj_type");
             if (!string.IsNullOrEmpty(objTypeStr))
             {
                 objTypeStr = objTypeStr.Trim().ToLower();
