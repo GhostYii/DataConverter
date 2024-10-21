@@ -33,7 +33,7 @@ DCT规定了一些excel的规范以用于解析，其主要内容如下（以下
   - `int`：整数
   - `float`：浮点数/小数
   - `string`：字符串，也可写作`str`
-  - `'enum:name'`: 名称为name的枚举
+  - `enum:name`: 名称为name的枚举
   - `array:type`：类型为type的数组，也可写作`arr`或者`list`
   - `map:value_type`：键类型为string（键类型不可更改），值类型为value_type的字典，也可以写作`dict`、`pairs`、`hash`
   - `object:object_type`：类型为object_type的对象，此对象类型必须被DCT所识别，也可写作`obj`
