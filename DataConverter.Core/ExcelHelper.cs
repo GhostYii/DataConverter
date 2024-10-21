@@ -3,9 +3,10 @@ using SpreadsheetLight;
 
 namespace DataConverter.Core
 {
-    using DataDict = Dictionary<int, Dictionary<string, object>>;
+    using DataDict = Dictionary<int, Dictionary<string, string>>;
     using DataNameDict = Dictionary<string, CellName>;
     using DataTypeDict = Dictionary<string, CellType>;
+    using DataEnumDict = Dictionary<string, List<string>>;
     using ExcelDocument = SLDocument;
     using Row = Dictionary<int, SLCell>;
     using Rows = Dictionary<int, Dictionary<int, SLCell>>;
@@ -269,6 +270,8 @@ namespace DataConverter.Core
                 data.Types = GetTypes(rows, filename, sheetIndex);
                 data.Names = GetNames(rows, filename, sheetIndex);
                 data.Datas = GetTableData(rows, data.Names.Keys);
+                // enums need types and datas, must parsed at last
+                data.Enums = GetEnums(data.Types, data.Datas);
                 data.DataBeginRowNumber = rows.Count <= Const.ROW_LINE_NUM_DATA ? 0 :
                     rows.ElementAt(Const.ROW_LINE_NUM_DATA).Key;
 
@@ -279,6 +282,8 @@ namespace DataConverter.Core
                         Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}字典键非值类型");
                 }
 
+                // do this after GetEnums
+                data.UpdateDataByEnums();
                 return data;
             }
             else
@@ -457,6 +462,17 @@ namespace DataConverter.Core
                 }
                 else
                 {
+                    // special check for object and enum type
+                    if (type.type == CellValueType.Object || type.type == CellValueType.Enum)
+                    {
+                        if (string.IsNullOrEmpty(type.objName))
+                        {
+                            Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[1]}\'，位于数据表'{Path.GetFileName(filename)}'表{sheetIndex}的" +
+                                        $"{SLConvert.ToCellReference(rowIndex, columnIndex)}项，该项数据将被忽略");
+                            continue;
+                        }
+                    }
+
                     result[columnName] = type;
                 }
             }
@@ -467,7 +483,7 @@ namespace DataConverter.Core
             DataDict data = new DataDict();
             for (int i = Const.ROW_LINE_NUM_DATA; i < rows.Count; i++)
             {
-                Dictionary<string, object> rowData = new Dictionary<string, object>();
+                Dictionary<string, string> rowData = new();
 
                 var rowInfo = rows.ElementAt(i);
                 int rowIndex = rowInfo.Key;
@@ -494,6 +510,42 @@ namespace DataConverter.Core
             }
 
             return data;
+        }
+
+        private static DataEnumDict GetEnums(DataTypeDict types, DataDict datas)
+        {
+            DataEnumDict enums = new();
+            foreach (var (colName, cellType) in types)
+            {
+                if (cellType.type != CellValueType.Enum)
+                    continue;
+
+                var enumNames = new List<string>();
+
+                foreach (var (_, data) in datas)
+                {
+                    var val = data[colName];
+                    if (string.IsNullOrEmpty(val))
+                    {
+                        if (!enumNames.Contains("None"))
+                            enumNames.Insert(0, "None");
+                        continue;
+                    }
+
+                    if (int.TryParse(val, out int _))
+                        continue;
+
+                    string fieldName = Utils.ToFieldName(val);
+                    if (string.IsNullOrEmpty(fieldName))
+                        continue;
+
+                    if (!enumNames.Contains(fieldName))
+                        enumNames.Add(fieldName);
+                }
+                enums[cellType.objName] = enumNames;
+
+            }
+            return enums;
         }
 
         #endregion

@@ -20,6 +20,7 @@
             return val == CellValueType.Bool ||
                    val == CellValueType.Int ||
                    val == CellValueType.Float ||
+                   val == CellValueType.Enum ||
                    val == CellValueType.String;
         }
 

@@ -7,7 +7,7 @@ namespace DataConverter.Core
     {
         private static Dictionary<string, MethodInfo> _typeParsers = new Dictionary<string, MethodInfo>();
 
-        static TypeParser() { LoadParser(typeof(TypeParser));  }
+        static TypeParser() => LoadParser(typeof(TypeParser));
 
         public static void LoadParser(Type type)
         {
@@ -56,7 +56,7 @@ namespace DataConverter.Core
         }
 
         internal static CellType Parse(string typeArg)
-        {            
+        {
             string[] typeStr = SplitType(typeArg);
             string keyName = typeStr[0].Trim().ToLower();
             if (!_typeParsers.ContainsKey(keyName))
@@ -93,46 +93,28 @@ namespace DataConverter.Core
         //}
 
         [ExcelTypeParser("int")]
-        private static CellType IntParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Int };
-        }
+        private static CellType IntParser(string type, string subType) => new CellType { type = CellValueType.Int };
 
         [ExcelTypeParser("float")]
-        private static CellType FloatParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Float };
-        }
+        private static CellType FloatParser(string type, string subType) => new CellType { type = CellValueType.Float };
 
         [ExcelTypeParser("bool", "boolean")]
-        private static CellType BoolParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Bool };
-        }
+        private static CellType BoolParser(string type, string subType) => new CellType { type = CellValueType.Bool };
 
         [ExcelTypeParser("string", "str")]
-        private static CellType StringParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.String };
-        }
+        private static CellType StringParser(string type, string subType) => new CellType { type = CellValueType.String };
+
+        [ExcelTypeParser("enum")]
+        private static CellType EnumParser(string type, string subType) => new CellType { type = CellValueType.Enum, objName = Utils.ToFieldName(subType) };
 
         [ExcelTypeParser("object", "obj")]
-        private static CellType ObjectParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Object, objName = subType };
-        }
+        private static CellType ObjectParser(string type, string subType) => new CellType { type = CellValueType.Object, objName = Utils.ToFieldName(subType) };
 
         [ExcelTypeParser("array", "arr", "list")]
-        private static CellType ArrayParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Array, subType = Parse(subType) };
-        }
+        private static CellType ArrayParser(string type, string subType) => new CellType { type = CellValueType.Array, subType = Parse(subType) };
 
         [ExcelTypeParser("map", "dict", "pairs", "hash")]
-        private static CellType DictionaryParser(string type, string subType)
-        {
-            return new CellType { type = CellValueType.Map, subType = Parse(subType) };
-        }
+        private static CellType DictionaryParser(string type, string subType) => new CellType { type = CellValueType.Map, subType = Parse(subType) };
 
     }
 }

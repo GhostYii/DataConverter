@@ -11,16 +11,13 @@ namespace DataConverter.Core
             ".xls"
         };
 
-        public override bool CheckConvert(string extension)
-        {
-            return _supportExtensions.Contains(extension);
-        }
+        public override bool CheckConvert(string extension) => _supportExtensions.Contains(extension);
 
         public override T FromData<T>(string json)
         {
             try
             {
-                return JsonConvert.DeserializeObject<T>(json);
+                return JsonConvert.DeserializeObject<T>(json)!;
             }
             catch (Exception e)
             {
@@ -119,6 +116,32 @@ namespace DataConverter.Core
                 }
             }
 
+            // write enum types
+            if (data.Config.genEnumType)
+            {
+                foreach (var (enumName, enumValues) in data.Enums)
+                {
+                    writer.WriteLine($"public enum {enumName}");
+                    writer.BeginBlock();
+
+                    for (int i = 0; i < enumValues.Count; ++i)
+                    {
+                        writer.WriteIndent();
+                        writer.WriteFormat
+                        (
+                            "{0}{1}{2}",
+                            enumValues[i],
+                            i == 0 ? " = 0" : string.Empty,
+                            i == enumValues.Count - 1 ? string.Empty : ","
+                        );
+                        writer.WriteLine();
+                    }
+
+                    writer.EndBlock();
+                    writer.WriteLine();
+                }
+            }
+
             string codeType = data.Config.objectType.ToString().ToLower();
             // default use struct to avoid gc
             if (string.IsNullOrEmpty(codeType) || codeType == "none")
@@ -129,7 +152,7 @@ namespace DataConverter.Core
 
             foreach (var (columnName, cellName) in data.Names)
             {
-                if (cellName.settings.isIgnore)
+                if (!data.Types.ContainsKey(columnName) || cellName.settings.isIgnore)
                     continue;
 
                 writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.name};");
@@ -183,7 +206,7 @@ namespace DataConverter.Core
                     foreach (var (row, _) in excelData.Datas)
                     {
                         var item = ToJsonObject(excelData, row);
-                        var keyToken = item[excelData.Config.key].ToString();
+                        var keyToken = item[excelData.Config.key]!.ToString();
                         if (mapObj.ContainsKey(keyToken))
                         {
                             Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'中" +
@@ -230,8 +253,7 @@ namespace DataConverter.Core
                 else if (type == null)
                 {
                     jsonData[cellName] = JsonConvert.DeserializeObject(cellData?.ToString(), data.Types[columnName].JsonType) as JToken;
-                    //jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData?.ToString());
-                    //Console.Print($"GTMD----> {cellData?.ToString()}");
+                    //jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData?.ToString());                    
                     continue;
                 }
 
@@ -248,7 +270,5 @@ namespace DataConverter.Core
 
             return jsonData;
         }
-
-
     }
 }

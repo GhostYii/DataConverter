@@ -24,6 +24,7 @@ namespace DataConverter.Core
         Int,
         Float,
         String,
+        Enum,
         Object,
         Array,
         Map
@@ -37,6 +38,7 @@ namespace DataConverter.Core
         public string type;
         public ObjectType objectType;
         public string objectName;
+        public bool genEnumType;
     }
 
 
@@ -64,12 +66,14 @@ namespace DataConverter.Core
                         return typeof(float);
                     case CellValueType.String:
                         return typeof(string);
+                    case CellValueType.Enum:
+                        return Type.GetType(objName) ?? DC.GetType(objName);
                     case CellValueType.Object:
                         return Type.GetType(objName) ?? DC.GetType(objName);
                     case CellValueType.Array:
-                        return Type.GetType(FullTypeName);
+                        return Type.GetType(FullTypeName)!;
                     case CellValueType.Map:
-                        return Type.GetType(FullTypeName);
+                        return Type.GetType(FullTypeName)!;
                 }
                 return typeof(object);
             }
@@ -90,6 +94,8 @@ namespace DataConverter.Core
                     case CellValueType.Float:
                         return typeof(JValue);
                     case CellValueType.String:
+                        return typeof(JValue);
+                    case CellValueType.Enum:
                         return typeof(JValue);
                     case CellValueType.Object:
                         return typeof(JObject);
@@ -112,13 +118,15 @@ namespace DataConverter.Core
                     case CellValueType.Null:
                         return null;     // Error Case
                     case CellValueType.Bool:
-                        return typeof(bool).FullName;
+                        return typeof(bool).FullName!;
                     case CellValueType.Int:
-                        return typeof(int).FullName;
+                        return typeof(int).FullName!;
                     case CellValueType.Float:
-                        return typeof(float).FullName;
+                        return typeof(float).FullName!;
                     case CellValueType.String:
-                        return typeof(string).FullName;
+                        return typeof(string).FullName!;
+                    case CellValueType.Enum:
+                        return objName;
                     case CellValueType.Object:
                         return objName;
                     case CellValueType.Array:
@@ -126,7 +134,7 @@ namespace DataConverter.Core
                     case CellValueType.Map:
                         return $"System.Collections.Generic.Dictionary`2[{typeof(string).FullName},{subType.FullTypeName}]";
                 }
-                return typeof(object).FullName;
+                return typeof(object).FullName!;
             }
         }
 
@@ -146,6 +154,8 @@ namespace DataConverter.Core
                         return "float";
                     case CellValueType.String:
                         return "string";
+                    case CellValueType.Enum:
+                        return objName;
                     case CellValueType.Object:
                         return objName;
                     case CellValueType.Array:
@@ -171,6 +181,8 @@ namespace DataConverter.Core
                         return new JValue(0f);
                     case CellValueType.String:
                         return new JValue(string.Empty);
+                    case CellValueType.Enum:
+                        return new JValue(0);
                     case CellValueType.Object:
                         return new JObject();
                     case CellValueType.Array:

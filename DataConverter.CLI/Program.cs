@@ -19,6 +19,8 @@ namespace DataConverter.CLI
             Core.Console.AddErrorListener(msg => { Console.ForegroundColor = ConsoleColor.Red; Console.WriteLine(msg); Console.ResetColor(); });
             Core.Console.AddWarningListener(msg => { Console.ForegroundColor = ConsoleColor.Yellow; Console.WriteLine(msg); Console.ResetColor(); });
 
+            Console.WriteLine($"DataConverter Tool, Version CLI:{_Version}, Core: {typeof(ExcelHelper).Assembly.GetName().Version}");
+
             if (args.Length >= 1)
             {
                 string cmd = args[0];

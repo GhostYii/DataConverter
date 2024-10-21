@@ -23,8 +23,8 @@ namespace DataConverter.Core
                 objectName = string.Empty
             };
 
-            JObject jsonObj = serializer.Deserialize<JObject>(reader);
-            switch (jsonObj.Value<string>("format").ToLower())
+            JObject jsonObj = serializer.Deserialize<JObject>(reader)!;
+            switch (jsonObj.Value<string>("format")!.ToLower())
             {
                 case "arr":
                     result.format = FormatType.Array;
@@ -34,7 +34,7 @@ namespace DataConverter.Core
                     break;
                 case "map":
                     result.format = FormatType.KeyValuePair;
-                    result.key = jsonObj.Value<string>("key");
+                    result.key = jsonObj.Value<string>("key")!;
                     break;
                 default:
                     result.format = FormatType.None;
@@ -42,7 +42,7 @@ namespace DataConverter.Core
             }
 
             // default generate struct
-            string objTypeStr = jsonObj.Value<string>("obj_type");
+            string objTypeStr = jsonObj.Value<string>("obj_type")!;
             if (!string.IsNullOrEmpty(objTypeStr))
             {
                 objTypeStr = objTypeStr.Trim().ToLower();
@@ -52,6 +52,7 @@ namespace DataConverter.Core
                 result.objectType = ObjectType.Struct;
 
             result.objectName = jsonObj.Value<string>("obj_name") ?? string.Empty;
+            result.genEnumType = jsonObj.ContainsKey("gen_enum") ? jsonObj.Value<bool>("gen_enum") : true;
 
             return result;
         }

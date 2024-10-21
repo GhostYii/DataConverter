@@ -35,7 +35,7 @@ namespace DataConverter.Core
             // 空名字
             if (string.IsNullOrEmpty(name))
                 return null;
-            
+
             // 含有非法字符
             if (!IsValidTypeName(name))
                 return null;
@@ -112,16 +112,16 @@ namespace DataConverter.Core
         // 表格中的布尔值判断逻辑
         public static bool ParseToBool(object value)
         {
-            if(value == null)            
+            if (value == null)
                 return false;
 
-            string strValue = value.ToString();          
+            string strValue = value.ToString();
             if (bool.TryParse(strValue, out bool result))
                 return result;
-            
-            if (int.TryParse(strValue, out int intRes))            
+
+            if (int.TryParse(strValue, out int intRes))
                 return intRes != 0;
-            
+
             return false;
         }
     }
