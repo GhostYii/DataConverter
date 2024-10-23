@@ -8,13 +8,13 @@
         private static event Action<string> _warning = _defaultAction;
         private static event Action<string> _error = _defaultAction;
 
-        public static void AddPrintListener(Action<string> action) { _print += action; }
+        public static void AddPrintListener(Action<string> action) { _print -= action; _print += action; }
         public static void RemovePrintListener(Action<string> action) { _print -= action; }
 
-        public static void AddWarningListener(Action<string> action) { _warning += action; }
+        public static void AddWarningListener(Action<string> action) { _warning -= action; _warning += action; }
         public static void RemoveWarningListener(Action<string> action) { _warning -= action; }
 
-        public static void AddErrorListener(Action<string> action) { _error += action; }
+        public static void AddErrorListener(Action<string> action) { _error -= action; _error += action; }
         public static void RemoveErrorListener(Action<string> action) { _error -= action; }
 
         public static void Clear()

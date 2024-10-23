@@ -172,22 +172,11 @@ namespace DataConverter.Core
 
             var fmt = GetDataConfig(rows);
             if (fmt.HasValue && fmt.Value.format == FormatType.None)
-                Console.PrintError($"数据表'{Path.GetFileName(filename)}'第{sheetIndex}张表配置了不支持的格式");
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}配置了不支持的格式");
             else
                 Console.PrintError($"数据表'{Path.GetFileName(filename)}'第{Const.ROW_LINE_NUM_CONFIG}个有效行不是配置控制字段");
 
             return fmt ?? result;
-        }
-        internal static DataConfig GetDataFormat(string filename, string sheetName)
-        {
-            DataConfig defaultFmt = new DataConfig() { format = FormatType.None };
-            if (!CheckValid(filename, sheetName))
-                return defaultFmt;
-
-            if (!File.Exists(filename))
-                return defaultFmt;
-
-            return GetDataConfig(filename, GetSheetIndexByName(filename, sheetName));
         }
 
         // 获取表格数据名称
@@ -199,7 +188,7 @@ namespace DataConverter.Core
             Rows rows = GetValidRows(filename, sheetIndex);
             if (rows.Count < Const.ROW_LINE_NUM_NAME)
             {
-                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}第{Const.ROW_LINE_NUM_NAME}个有效行不是字段名称行");
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}第{Const.ROW_LINE_NUM_NAME}个有效行不是字段名称行");
                 return null;
             }
 
@@ -222,7 +211,7 @@ namespace DataConverter.Core
             Rows rows = GetValidRows(filename, sheetIndex);
             if (rows.Count < Const.ROW_LINE_NUM_TYPE)
             {
-                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}第{Const.ROW_LINE_NUM_TYPE}个有效行不是字段类型行");
+                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}第{Const.ROW_LINE_NUM_TYPE}个有效行不是字段类型行");
                 return null;
             }
 
@@ -279,7 +268,7 @@ namespace DataConverter.Core
                 {
                     string pos = data.Names.First(pair => pair.Value.name == data.Config.key).Key;
                     if (!data.Types[pos].type.IsValueType())
-                        Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}字典键非值类型");
+                        Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}字典键非值类型");
                 }
 
                 // do this after GetEnums
@@ -409,14 +398,14 @@ namespace DataConverter.Core
 
                 if (string.IsNullOrEmpty(fieldName))
                 {
-                    Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}位置为" +
+                    Console.PrintError($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}位置为" +
                         $"{columnName}{rowIndex}的数据名称非法，非法名称将被忽略");
                     continue;
                 }
 
                 if (names.Contains(fieldName))
                 {
-                    Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{sheetIndex}位置为" +
+                    Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}位置为" +
                         $"{columnName}{rowIndex}的数据名称重复，重复数据将被忽略");
                     continue;
                 }
@@ -456,7 +445,7 @@ namespace DataConverter.Core
                 var type = TypeParser.Parse(cellStr);
                 if (type == null)
                 {
-                    Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[0]}\'，位于数据表'{Path.GetFileName(filename)}'表{sheetIndex}的" +
+                    Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[0]}\'，位于数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}的" +
                                         $"{SLConvert.ToCellReference(rowIndex, columnIndex)}项，该项数据将被忽略");
                     continue;
                 }
@@ -467,7 +456,7 @@ namespace DataConverter.Core
                     {
                         if (string.IsNullOrEmpty(type.objName))
                         {
-                            Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[1]}\'，位于数据表'{Path.GetFileName(filename)}'表{sheetIndex}的" +
+                            Console.PrintError($"不支持的数据类型\'{TypeParser.SplitType(cellStr)[1]}\'，位于数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}的" +
                                         $"{SLConvert.ToCellReference(rowIndex, columnIndex)}项，该项数据将被忽略");
                             continue;
                         }

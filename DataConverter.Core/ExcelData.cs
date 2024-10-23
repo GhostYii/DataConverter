@@ -1,7 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using SpreadsheetLight;
-
-namespace DataConverter.Core
+﻿namespace DataConverter.Core
 {
     internal class ExcelData
     {
