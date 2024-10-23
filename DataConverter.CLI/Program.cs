@@ -77,6 +77,8 @@ namespace DataConverter.CLI
         private static void ToJson(string filename, string sheetName, string savePath)
         {
             filename = Path.GetFullPath(filename);
+            if (!_convert.CheckToJson(filename, sheetName))
+                return;
 
             string jsonStr = _convert.ToJson(filename, sheetName);
             File.WriteAllText(savePath, jsonStr, Encoding.UTF8);
@@ -87,6 +89,8 @@ namespace DataConverter.CLI
         private static void ToJson(string filename, int sheetIndex, string savePath)
         {
             filename = Path.GetFullPath(filename);
+            if (!_convert.CheckToJson(filename, sheetIndex))
+                return;
 
             string jsonStr = _convert.ToJson(filename, sheetIndex);
             File.WriteAllText(savePath, jsonStr, Encoding.UTF8);
@@ -109,6 +113,9 @@ namespace DataConverter.CLI
                 var sheets = ExcelHelper.GetWorksheetNames(file);
                 foreach (var name in sheets)
                 {
+                    if (!_convert.CheckToJson(file, name))
+                        continue;
+
                     string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.json");
                     string json = _convert.ToJson(file, name);
                     if (string.IsNullOrEmpty(json))
@@ -134,6 +141,9 @@ namespace DataConverter.CLI
             var sheets = ExcelHelper.GetWorksheetNames(filename);
             foreach (var name in sheets)
             {
+                if (!_convert.CheckToJson(filename, name))
+                    continue;
+
                 string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(filename)}.{name}.json");
                 string json = _convert.ToJson(filename, name);
                 if (string.IsNullOrEmpty(json))
@@ -149,6 +159,9 @@ namespace DataConverter.CLI
         {
             filename = Path.GetFullPath(filename);
             savePath = Path.GetFullPath(savePath);
+
+            if (!_convert.CheckToJson(filename, sheetName))
+                return;
 
             byte[] bson = BsonConverter.ExcelToBson(filename, sheetName);
             File.WriteAllBytes(savePath, bson);
@@ -238,6 +251,9 @@ namespace DataConverter.CLI
             var sheets = ExcelHelper.GetWorksheetNames(filename);
             foreach (var name in sheets)
             {
+                if (!_convert.CheckToJson(filename, name))
+                    continue;
+
                 string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(filename)}.{name}.bin");
                 ToBson(filename, name, savePath);
             }

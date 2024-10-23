@@ -33,6 +33,8 @@ namespace DataConverter.Core
     [JsonConverter(typeof(DataConfigConverter))]
     internal struct DataConfig
     {
+        public bool isTemplate;
+        public string templateName;
         public FormatType format;
         public string key;
         public string type;

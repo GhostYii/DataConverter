@@ -16,29 +16,38 @@ namespace DataConverter.Core
         {
             DataConfig result = new DataConfig()
             {
+                isTemplate = false,
+                templateName = string.Empty,
                 format = FormatType.None,
                 key = string.Empty,
                 type = string.Empty,
                 objectType = ObjectType.None,
-                objectName = string.Empty
+                objectName = string.Empty,
+                genEnumType = true
             };
 
             JObject jsonObj = serializer.Deserialize<JObject>(reader)!;
-            switch (jsonObj.Value<string>("format")!.ToLower())
+            result.isTemplate = jsonObj.ContainsKey("is_template") ? jsonObj.Value<bool>("is_template") : false;
+            result.templateName = jsonObj.ContainsKey("template_name") ? jsonObj.Value<string>("template_name") ?? string.Empty : string.Empty;
+
+            if (jsonObj.ContainsKey("format"))
             {
-                case "arr":
-                    result.format = FormatType.Array;
-                    break;
-                case "array":
-                    result.format = FormatType.Array;
-                    break;
-                case "map":
-                    result.format = FormatType.KeyValuePair;
-                    result.key = jsonObj.Value<string>("key")!;
-                    break;
-                default:
-                    result.format = FormatType.None;
-                    break;
+                switch (jsonObj.Value<string>("format")!.ToLower())
+                {
+                    case "arr":
+                        result.format = FormatType.Array;
+                        break;
+                    case "array":
+                        result.format = FormatType.Array;
+                        break;
+                    case "map":
+                        result.format = FormatType.KeyValuePair;
+                        result.key = jsonObj.Value<string>("key")!;
+                        break;
+                    default:
+                        result.format = FormatType.None;
+                        break;
+                }
             }
 
             // default generate struct

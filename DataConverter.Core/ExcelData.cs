@@ -6,15 +6,36 @@
         public string Filename { get; internal set; } = string.Empty;
         public int SheetIndex { get; internal set; } = 0;
         public string SheetName { get; internal set; } = string.Empty;
-
         public DataConfig Config { get; internal set; } = new();
-        public Dictionary<string, CellName> Names { get; internal set; } = new();
-        public Dictionary<string, CellType> Types { get; internal set; } = new();
 
-        // { rowNumber : { columnName : value } }
+        // { rowNumber : { columnName : value } }        
         public Dictionary<int, Dictionary<string, string>> Datas { get; internal set; } = new();
 
-        public Dictionary<string, List<string>> Enums { get; internal set; } = new();
+        private Dictionary<string, CellName> _names = new();
+        public Dictionary<string, CellName> SelfNames => _names;
+        public Dictionary<string, CellName> Names { get => Template == null ? _names : Template.Names; internal set => _names = value; }
+
+        private Dictionary<string, CellType> _types = new();
+        public Dictionary<string, CellType> SelfTypes => _types;
+        public Dictionary<string, CellType> Types { get => Template == null ? _types : Template.Types; internal set => _types = value; }
+
+        private Dictionary<string, List<string>> _enums = new();
+        public Dictionary<string, List<string>> Enums { get => Template == null ? _enums : Template.Enums; internal set => _enums = value; }
+
+        internal ExcelData Template { get; set; } = null;
+
+        public void UpdateConfigsByTemplate()
+        {
+            if (Template == null)
+                return;
+
+            DataConfig config = Template.Config;
+            config.isTemplate = false;
+            config.templateName = Config.templateName;
+            config.genEnumType = false;
+
+            Config = config;
+        }
 
         public void UpdateDataByEnums()
         {
@@ -23,7 +44,7 @@
 
             var newData = new List<ValueTuple<int, string, string>>();
 
-            foreach (var (colName, cellType) in Types)
+            foreach (var (colName, cellType) in SelfTypes)
             {
                 if (cellType.type != CellValueType.Enum)
                     continue;

@@ -259,7 +259,7 @@ namespace DataConverter.Core
                 data.Types = GetTypes(rows, filename, sheetIndex);
                 data.Names = GetNames(rows, filename, sheetIndex);
                 data.Datas = GetTableData(rows, data.Names.Keys);
-                // enums need types and datas, must parsed at last
+                // enums need types and datas, must parsed after them
                 data.Enums = GetEnums(data.Types, data.Datas);
                 data.DataBeginRowNumber = rows.Count <= Const.ROW_LINE_NUM_DATA ? 0 :
                     rows.ElementAt(Const.ROW_LINE_NUM_DATA).Key;
@@ -271,8 +271,16 @@ namespace DataConverter.Core
                         Console.PrintWarning($"数据表'{Path.GetFileName(filename)}'表{GetSheetNameByIndex(filename, sheetIndex)}字典键非值类型");
                 }
 
-                // do this after GetEnums
+                // this should apply after types and names
+                if (!string.IsNullOrEmpty(data.Config.templateName))
+                {
+                    data.Template = GetExcelData(filename, GetSheetIndexByName(filename, data.Config.templateName));
+                    data.UpdateConfigsByTemplate();
+                }
+
+                // do it at last
                 data.UpdateDataByEnums();
+
                 return data;
             }
             else
