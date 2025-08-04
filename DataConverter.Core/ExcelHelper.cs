@@ -423,7 +423,8 @@ namespace DataConverter.Core
                 ConverterSettings cs = new ConverterSettings()
                 {
                     isIgnore = cellStr.StartsWith(Const.NOTE_PREFIX),
-                    cantEmpty = cellStr.EndsWith(Const.NON_EMPTY_SUFFIX)
+                    cantEmpty = cellStr.EndsWith(Const.NON_EMPTY_SUFFIX),
+                    isUnique = cellStr.EndsWith(Const.UNIQUE_SUFFIX)
                 };
 
                 result[columnName] = new CellName()

@@ -249,6 +249,7 @@ namespace DataConverter.Core
                 return null;
 
             var rowData = data.Datas[rowNumber];
+            HashSet<string> cacheDatas = new();
 
             foreach (var (columnName, cellData) in rowData)
             {
@@ -262,6 +263,15 @@ namespace DataConverter.Core
                         $"（位置{columnName}{rowNumber}）不得为空");
                     return null;
                 }
+
+                if (name.settings.isUnique && cacheDatas.Contains(cellData))
+                {
+                    Console.PrintError($"数据表'{Path.GetFileName(data.Filename)}'表'{data.SheetName}'中字段{name.name}" +
+                        $"（位置{columnName}{rowNumber}）数据重复");
+                    return null;
+                }
+
+                cacheDatas.Add(cellData);
 
                 var type = data.SelfTypes[columnName].Type;
                 string cellName = data.SelfNames[columnName].name;

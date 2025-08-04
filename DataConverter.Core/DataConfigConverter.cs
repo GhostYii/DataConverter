@@ -30,9 +30,11 @@ namespace DataConverter.Core
             result.isTemplate = jsonObj.ContainsKey("is_template") ? jsonObj.Value<bool>("is_template") : false;
             result.templateName = jsonObj.ContainsKey("template_name") ? jsonObj.Value<string>("template_name") ?? string.Empty : string.Empty;
 
-            if (jsonObj.ContainsKey("format"))
+            if (jsonObj.ContainsKey("format") || jsonObj.ContainsKey("fmt"))
             {
-                switch (jsonObj.Value<string>("format")!.ToLower())
+                string format = jsonObj.ContainsKey("format") ? jsonObj.Value<string>("format")!.ToLower() : jsonObj.Value<string>("fmt")!.ToLower();
+
+                switch (format)
                 {
                     case "arr":
                         result.format = FormatType.Array;

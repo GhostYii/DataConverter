@@ -203,6 +203,8 @@ namespace DataConverter.Core
         public bool isIgnore;
         // 不得为空
         public bool cantEmpty;
+        // 不得重复
+        public bool isUnique;
     }
 
     internal struct CellName
