@@ -219,22 +219,36 @@ namespace DataConverter.Core
                     JArray array = new JArray();
                     foreach (var (row, _) in excelData.Datas)
                     {
-                        array.Add(ToJsonObject(excelData, row));
+                        try
+                        {
+                            array.Add(ToJsonObject(excelData, row));
+                        }
+                        catch (Exception e)
+                        {
+                            Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'第{row}行解析失败！错误原因：{e.Message}");
+                        }
                     }
                     return JsonConvert.SerializeObject(array);
                 case FormatType.KeyValuePair:
                     JObject mapObj = new JObject();
                     foreach (var (row, _) in excelData.Datas)
                     {
-                        var item = ToJsonObject(excelData, row);
-                        var keyToken = item[excelData.Config.key]!.ToString();
-                        if (mapObj.ContainsKey(keyToken))
+                        try
                         {
-                            Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'中" +
-                                $"包含重复key（{excelData.Config.key}）值{keyToken}");
-                            return string.Empty;
+                            var item = ToJsonObject(excelData, row);
+                            var keyToken = item[excelData.Config.key]!.ToString();
+                            if (mapObj.ContainsKey(keyToken))
+                            {
+                                Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'中" +
+                                    $"包含重复key（{excelData.Config.key}）值{keyToken}");
+                                return string.Empty;
+                            }
+                            mapObj[keyToken] = item;
                         }
-                        mapObj[keyToken] = item;
+                        catch (Exception e)
+                        {
+                            Console.PrintError($"数据表'{Path.GetFileName(filename)}'表'{sheetName}'第{row}行解析失败！错误原因：{e.Message}");
+                        }
                     }
                     return JsonConvert.SerializeObject(mapObj);
             }

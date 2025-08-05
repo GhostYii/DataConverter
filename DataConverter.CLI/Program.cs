@@ -7,7 +7,7 @@ namespace DataConverter.CLI
     using Console = System.Console;
     public class CLI
     {
-        private static string _Version => Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        private static Version? _Version => Assembly.GetExecutingAssembly().GetName().Version;
         private static ExcelConverter _convert = new ExcelConverter();
 
         public static void Main(params string[] args)
