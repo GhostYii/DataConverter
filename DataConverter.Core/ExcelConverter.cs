@@ -306,7 +306,7 @@ namespace DataConverter.Core
                 if (type.Equals(typeof(bool)))
                     jsonData[data.SelfNames[columnName].name] = new JValue(Utils.ParseToBool(cellData));
                 else if (type.IsValueType || type.Equals(typeof(string)))
-                    jsonData[data.SelfNames[columnName].name] = new JValue(cellData);
+                    jsonData[data.SelfNames[columnName].name] = MakeJValue(cellData, type);
                 else if (type.IsList())
                     jsonData[cellName] = JsonConvert.DeserializeObject<JArray>(cellData.ToString());
                 else
@@ -315,5 +315,17 @@ namespace DataConverter.Core
 
             return jsonData;
         }
+
+        private JValue MakeJValue(string? data, Type type)
+        {
+            if (type == typeof(int))
+                return new(int.TryParse(data, out var val) ? val : 0);
+
+            if (type == typeof(float))
+                return new(float.TryParse(data, out var val) ? val : 0);
+
+            return new(data);
+        }
+
     }
 }
