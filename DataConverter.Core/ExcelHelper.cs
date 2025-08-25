@@ -524,11 +524,7 @@ namespace DataConverter.Core
                 {
                     var val = data[colName];
                     if (string.IsNullOrEmpty(val))
-                    {
-                        if (!enumNames.Contains("None"))
-                            enumNames.Insert(0, "None");
                         continue;
-                    }
 
                     if (int.TryParse(val, out int _))
                         continue;
@@ -540,6 +536,10 @@ namespace DataConverter.Core
                     if (!enumNames.Contains(fieldName))
                         enumNames.Add(fieldName);
                 }
+
+                if (enumNames.Count == 0)
+                    enumNames.Insert(0, "None");
+
                 enums[cellType.objName] = enumNames;
 
             }
