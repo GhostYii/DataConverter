@@ -214,4 +214,9 @@ namespace DataConverter.Core
         public ConverterSettings settings;
     }
 
+    internal class ConvertConfig
+    {
+        public List<string> namespaces = new();
+    }
+
 }

@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace DataConverter.Core
@@ -11,6 +10,21 @@ namespace DataConverter.Core
             ".xlsx",
             ".xls"
         };
+
+        private static ConvertConfig _config = null;
+        private static ConvertConfig Config
+        {
+            get
+            {
+                string path = $"{Environment.CurrentDirectory}/_dct_config.json";
+                if (_config == null && File.Exists(path))
+                {
+                    _config = JsonConvert.DeserializeObject<ConvertConfig>(File.ReadAllText(path))!;
+                }
+
+                return _config!;
+            }
+        }
 
         public override bool CheckConvert(string extension) => _supportExtensions.Contains(extension);
 
@@ -104,6 +118,14 @@ namespace DataConverter.Core
 
             writer.WriteLine("using System;");
             writer.WriteLine("using System.Collections.Generic;");
+
+            if (Config != null)
+            {
+                foreach (var ns in Config.namespaces)
+                {
+                    writer.WriteLine($"using {ns};");
+                }
+            }
 
             if (!string.IsNullOrEmpty(nameSpace))
             {
