@@ -25,11 +25,11 @@
             }
             foreach (var d in _warning.GetInvocationList())
             {
-                _print -= d as Action<string>;
+                _warning -= d as Action<string>;
             }
             foreach (var d in _error.GetInvocationList())
             {
-                _print -= d as Action<string>;
+                _error -= d as Action<string>;
             }
         }
 
