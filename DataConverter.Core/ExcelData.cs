@@ -22,6 +22,9 @@
         private Dictionary<string, List<string>> _enums = new();
         public Dictionary<string, List<string>> Enums { get => Template == null ? _enums : Template.Enums; internal set => _enums = value; }
 
+        private Dictionary<string, List<string>> _notes = new();
+        public Dictionary<string, List<string>> Notes { get => Template == null ? _notes : Template.Notes; internal set => _notes = value; }
+
         internal ExcelData Template { get; set; } = null;
 
         public void UpdateConfigsByTemplate()

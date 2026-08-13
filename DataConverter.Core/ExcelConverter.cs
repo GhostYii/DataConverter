@@ -197,6 +197,13 @@ namespace DataConverter.Core
                 if (!data.Types.ContainsKey(columnName) || cellName.settings.isIgnore)
                     continue;
 
+                if (!data.Config.ignoreNote &&
+                    data.Notes.TryGetValue(columnName, out List<string> notes))
+                {
+                    foreach (string note in notes)
+                        writer.WriteLine($"// {note}");
+                }
+
                 writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.name};");
                 //writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.fieldName} {{ get; set; }}");
             }

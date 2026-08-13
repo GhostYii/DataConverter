@@ -41,6 +41,7 @@ namespace DataConverter.Core
         public ObjectType objectType;
         public string objectName;
         public bool genEnumType;
+        public bool ignoreNote;
     }
 
 

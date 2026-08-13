@@ -7,6 +7,7 @@ namespace DataConverter.Core
     using DataNameDict = Dictionary<string, CellName>;
     using DataTypeDict = Dictionary<string, CellType>;
     using DataEnumDict = Dictionary<string, List<string>>;
+    using DataNoteDict = Dictionary<string, List<string>>;
     using ExcelDocument = SLDocument;
     using Row = Dictionary<int, SLCell>;
     using Rows = Dictionary<int, Dictionary<int, SLCell>>;
@@ -259,6 +260,7 @@ namespace DataConverter.Core
                 data.Types = GetTypes(rows, filename, sheetIndex);
                 data.Names = GetNames(rows, filename, sheetIndex);
                 data.Datas = GetTableData(rows, data.Names.Keys);
+                data.Notes = GetNotes(rows, GetNoteRows(filename, sheetIndex), data.Names);
                 // enums need types and datas, must parsed after them
                 data.Enums = GetEnums(data.Types, data.Datas);
                 data.DataBeginRowNumber = rows.Count <= Const.ROW_LINE_NUM_DATA ? 0 :
@@ -354,8 +356,8 @@ namespace DataConverter.Core
             return document;
         }
 
-        // 获取所有有效行
-        private static Rows GetValidRows(string filename, int sheetIndex = 0/*, bool includeNote = false*/)
+        // 获取全部行
+        private static Rows GetAllRows(string filename, int sheetIndex)
         {
             if (!File.Exists(filename))
             {
@@ -370,18 +372,9 @@ namespace DataConverter.Core
             var sstr = sheet.GetSharedStrings();
             sstr[0].GetText();
 
-            //if (includeNote)
-            //    return sheet.GetCells();
-
             Rows rows = new Rows();
             foreach (var (rowNumber, data) in sheet.GetCells())
             {
-                string firstCellValue = sheet.GetCellValueAsString($"A{rowNumber}");
-                bool isNote = firstCellValue.Trim().StartsWith(Const.NOTE_PREFIX);
-
-                if (isNote)
-                    continue;
-
                 Row row = new Row();
                 foreach (var (columnIndex, cell) in data)
                 {
@@ -393,6 +386,81 @@ namespace DataConverter.Core
             }
 
             return rows;
+        }
+
+        // 获取所有有效行
+        private static Rows GetValidRows(string filename, int sheetIndex = 0)
+        {
+            Rows rows = GetAllRows(filename, sheetIndex);
+            if (rows == null)
+                return null;
+
+            return rows.Where(kv => !IsNoteRow(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
+
+        // 获取所有注释行
+        private static Rows GetNoteRows(string filename, int sheetIndex)
+        {
+            Rows rows = GetAllRows(filename, sheetIndex);
+            if (rows == null)
+                return null;
+
+            return rows.Where(kv => IsNoteRow(kv.Value)).ToDictionary(kv => kv.Key, kv => kv.Value);
+        }
+
+        private static bool IsNoteRow(Row row)
+        {
+            if (!row.TryGetValue(1, out SLCell firstCell))
+                return false;
+
+            return !string.IsNullOrEmpty(firstCell.CellText) &&
+                   firstCell.CellText.Trim().StartsWith(Const.NOTE_PREFIX);
+        }
+
+        private static DataNoteDict GetNotes(Rows validRows, Rows noteRows, DataNameDict names)
+        {
+            DataNoteDict result = new DataNoteDict();
+            if (validRows == null || noteRows == null || names == null)
+                return result;
+
+            int typeRowNumber = validRows.ElementAt(Const.ROW_LINE_NUM_TYPE).Key;
+            int nameRowNumber = validRows.ElementAt(Const.ROW_LINE_NUM_NAME).Key;
+
+            foreach (int rowNumber in noteRows.Keys.OrderBy(key => key))
+            {
+                if (rowNumber <= typeRowNumber || rowNumber >= nameRowNumber)
+                    continue;
+
+                Row row = noteRows[rowNumber];
+                foreach (string columnName in names.Keys)
+                {
+                    int columnIndex = SLConvert.ToColumnIndex(columnName);
+                    if (!row.TryGetValue(columnIndex, out SLCell cell))
+                        continue;
+
+                    string note = cell.CellText;
+                    if (string.IsNullOrWhiteSpace(note))
+                        continue;
+
+                    note = note.Trim();
+                    if (note.StartsWith(Const.NOTE_PREFIX))
+                        note = note.Substring(1).Trim();
+
+                    foreach (string line in note.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        string lineText = line.Trim();
+                        if (string.IsNullOrEmpty(lineText))
+                            continue;
+
+                        if (!result.ContainsKey(columnName))
+                            result[columnName] = new List<string>();
+
+                        result[columnName].Add(lineText);
+                    }
+                }
+            }
+
+            return result;
         }
 
         private static DataConfig? GetDataConfig(Rows rows)

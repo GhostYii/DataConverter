@@ -23,7 +23,8 @@ namespace DataConverter.Core
                 type = string.Empty,
                 objectType = ObjectType.None,
                 objectName = string.Empty,
-                genEnumType = true
+                genEnumType = true,
+                ignoreNote = false
             };
 
             JObject jsonObj = serializer.Deserialize<JObject>(reader)!;
@@ -64,6 +65,7 @@ namespace DataConverter.Core
 
             result.objectName = jsonObj.Value<string>("obj_name") ?? string.Empty;
             result.genEnumType = jsonObj.ContainsKey("gen_enum") ? jsonObj.Value<bool>("gen_enum") : true;
+            result.ignoreNote = jsonObj.ContainsKey("ignore_note") ? jsonObj.Value<bool>("ignore_note") : false;
 
             return result;
         }
