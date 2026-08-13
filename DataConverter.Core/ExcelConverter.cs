@@ -35,7 +35,7 @@ namespace DataConverter.Core
 
             ExcelData excelData = ExcelHelper.GetExcelData(filename, sheetIndex);
 
-            // template sheet couldnt convert to json            
+            // template sheet couldnt convert to json
             if (excelData == null || excelData.Config.isTemplate)
                 return false;
 
@@ -89,7 +89,7 @@ namespace DataConverter.Core
             if (int.TryParse(typename.Substring(0, 1), out int _))
                 typename = $"_{typename}";
 
-            // support keyword name           
+            // support keyword name
             if (!Utils.IsValidIdentifier(typename))
                 typename = $"@{typename}";
 
@@ -135,7 +135,7 @@ namespace DataConverter.Core
                 if (int.TryParse(nameSpace.Substring(0, 1), out int _))
                     nameSpace = $"_{nameSpace}";
 
-                // support keyword name           
+                // support keyword name
                 if (!Utils.IsValidIdentifier(nameSpace))
                     nameSpace = $"@{nameSpace}";
 
@@ -320,7 +320,7 @@ namespace DataConverter.Core
                 else if (type == null)
                 {
                     jsonData[cellName] = JsonConvert.DeserializeObject(cellData?.ToString(), data.SelfTypes[columnName].JsonType) as JToken;
-                    //jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData?.ToString());                    
+                    //jsonData[cellName] = JsonConvert.DeserializeObject<JObject>(cellData?.ToString());
                     continue;
                 }
 

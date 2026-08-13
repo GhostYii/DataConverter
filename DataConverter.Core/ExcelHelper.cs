@@ -32,7 +32,7 @@ namespace DataConverter.Core
 
             try
             {
-                ExcelDocument file = new ExcelDocument(filename);
+                ExcelDocument file = OpenWorkbook(filename);
                 if (sheetIndex >= file.GetWorksheetNames().Count)
                 {
                     Console.PrintError($"数据表'{Path.GetFileName(filename)}'不存在第{sheetIndex}张表");
@@ -58,7 +58,7 @@ namespace DataConverter.Core
 
             try
             {
-                ExcelDocument file = new ExcelDocument(filename, sheetName);
+                ExcelDocument file = OpenWorkbook(filename, sheetName);
                 if (file == null)
                 {
                     Console.PrintError($"数据表'{Path.GetFileName(filename)}'不存在名为'{sheetName}'的数据表");
@@ -83,7 +83,7 @@ namespace DataConverter.Core
                 return 0;
             }
 
-            using (ExcelDocument file = new ExcelDocument(filename))
+            using (ExcelDocument file = OpenWorkbook(filename))
             {
                 return file.GetSheetNames().Count;
             }
@@ -100,7 +100,7 @@ namespace DataConverter.Core
                     return null;
                 }
 
-                using (ExcelDocument file = new ExcelDocument(filename))
+                using (ExcelDocument file = OpenWorkbook(filename))
                 {
                     return file.GetSheetNames().ToArray();
                 }
@@ -120,7 +120,7 @@ namespace DataConverter.Core
                 return null;
             }
 
-            using (ExcelDocument file = new ExcelDocument(filename))
+            using (ExcelDocument file = OpenWorkbook(filename))
             {
                 var names = file.GetSheetNames();
                 if (sheetIndex >= names.Count)
@@ -141,7 +141,7 @@ namespace DataConverter.Core
                 return 0;
             }
 
-            using (ExcelDocument file = new ExcelDocument(filename))
+            using (ExcelDocument file = OpenWorkbook(filename))
             {
                 int index = file.GetSheetNames().IndexOf(sheetName);
                 if (index == -1)
@@ -304,7 +304,7 @@ namespace DataConverter.Core
                 if (!CheckValid(filename, sheetIndex))
                     return null;
 
-                return new ExcelDocument(filename, GetSheetNameByIndex(filename, sheetIndex));
+                return OpenWorkbook(filename, GetSheetNameByIndex(filename, sheetIndex));
             }
             catch (Exception e)
             {
@@ -320,13 +320,38 @@ namespace DataConverter.Core
                 if (!CheckValid(filename, sheetName))
                     return null;
 
-                return new ExcelDocument(filename, sheetName);
+                return OpenWorkbook(filename, sheetName);
             }
             catch (Exception e)
             {
                 Console.PrintError($"加载数据表'{Path.GetFileName(filename)}'失败，{e.Message}");
                 return null;
             }
+        }
+
+        // 以只读共享的方式打开工作簿。
+        // Office/WPS 打开 Excel 时会持有写句柄，SLDocument 按文件名构造时使用
+        // File.ReadAllBytes（FileShare.Read），会与已有写句柄冲突从而抛出 IOException。
+        // 这里先用 FileShare.ReadWrite | FileShare.Delete 自行读出全部字节，
+        // 再通过内存流交给 SLDocument，使文件被占用时依然可以正常转换。
+        private static ExcelDocument OpenWorkbook(string filename, string sheetName = null!)
+        {
+            byte[] content;
+            using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    fs.CopyTo(ms);
+                    content = ms.ToArray();
+                }
+            }
+
+            MemoryStream stream = new MemoryStream(content, false);
+            ExcelDocument document = string.IsNullOrEmpty(sheetName)
+                ? new ExcelDocument(stream)
+                : new ExcelDocument(stream, sheetName);
+            stream.Dispose();
+            return document;
         }
 
         // 获取所有有效行
