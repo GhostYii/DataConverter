@@ -122,7 +122,7 @@ namespace DataConverter.CLI
                     continue;
 
                 try { cmd.method.Invoke(cmd.obj, argsWithType); }
-                catch (Exception e) { Console.WriteLine(e.Message); }
+                catch (Exception e) { PrintException(e); }
 
                 return;
 
@@ -161,7 +161,7 @@ namespace DataConverter.CLI
                     continue;
 
                 try { cmd.method.Invoke(cmd.obj, args); }
-                catch (Exception e) { Console.WriteLine(e.Message); }
+                catch (Exception e) { PrintException(e); }
 
                 return;
             }
@@ -186,6 +186,19 @@ namespace DataConverter.CLI
             //}
             //sb.Append(")");
             //Terminal?.AppendRaw(sb.ToString());
+        }
+
+        private static void PrintException(Exception exception)
+        {
+            Exception current = exception;
+            while (current is TargetInvocationException tie && tie.InnerException != null)
+                current = tie.InnerException;
+
+            while (current != null)
+            {
+                Console.WriteLine(current.Message);
+                current = current.InnerException;
+            }
         }
 
         private static void TipMethodParams(string name)

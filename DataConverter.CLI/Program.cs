@@ -137,7 +137,7 @@ namespace DataConverter.CLI
         private static void ExcelToJson(string filename)
         {
             filename = Path.GetFullPath(filename);
-            string saveDir = Directory.GetDirectoryRoot(filename);
+            string saveDir = Path.GetDirectoryName(filename) ?? Directory.GetCurrentDirectory();
             var sheets = ExcelHelper.GetWorksheetNames(filename);
             foreach (var name in sheets)
             {
@@ -164,6 +164,9 @@ namespace DataConverter.CLI
                 return;
 
             byte[] bson = BsonConverter.ExcelToBson(filename, sheetName);
+            if (bson.Length == 0)
+                return;
+
             File.WriteAllBytes(savePath, bson);
             Console.WriteLine($"{filename}/{sheetName} convert to {savePath}");
         }
@@ -236,9 +239,23 @@ namespace DataConverter.CLI
                 var sheets = ExcelHelper.GetWorksheetNames(file);
                 foreach (var name in sheets)
                 {
-                    string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.bin");
-                    File.WriteAllBytes(savePath, BsonConverter.ExcelToBson(file, name));
-                    Console.WriteLine($"{file}/{name} convert to {savePath}");
+                    try
+                    {
+                        if (!_convert.CheckToJson(file, name))
+                            continue;
+
+                        string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.bin");
+                        byte[] bson = BsonConverter.ExcelToBson(file, name);
+                        if (bson.Length == 0)
+                            continue;
+
+                        File.WriteAllBytes(savePath, bson);
+                        Console.WriteLine($"{file}/{name} convert to {savePath}");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"数据表'{Path.GetFileName(file)}'表'{name}'转BSON失败：{e.Message}");
+                    }
                 }
             }
         }
@@ -247,7 +264,7 @@ namespace DataConverter.CLI
         private static void ExcelToBson(string filename)
         {
             filename = Path.GetFullPath(filename);
-            string saveDir = Directory.GetDirectoryRoot(filename);
+            string saveDir = Path.GetDirectoryName(filename) ?? Directory.GetCurrentDirectory();
             var sheets = ExcelHelper.GetWorksheetNames(filename);
             foreach (var name in sheets)
             {
