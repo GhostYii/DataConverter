@@ -85,7 +85,7 @@ namespace DataConverter.CLI
         public static void Execute(string name, string[] args)
         {
             if (!_cmds.ContainsKey(name.ToLower()))
-            {                
+            {
                 Console.WriteLine($"unregistered command \"{name}\"");
                 return;
             }
@@ -121,7 +121,12 @@ namespace DataConverter.CLI
                 if (!isMatch)
                     continue;
 
-                try { cmd.method.Invoke(cmd.obj, argsWithType); }
+                try
+                {
+                    object? result = cmd.method.Invoke(cmd.obj, argsWithType);
+                    if (result is Task task)
+                        task.GetAwaiter().GetResult();
+                }
                 catch (Exception e) { PrintException(e); }
 
                 return;
@@ -133,7 +138,7 @@ namespace DataConverter.CLI
         public static void Execute(string name, params object[] args)
         {
             if (!_cmds.ContainsKey(name.ToLower()))
-            {                
+            {
                 Console.WriteLine($"unregistered command \"{name}\"");
                 return;
             }
@@ -160,7 +165,12 @@ namespace DataConverter.CLI
                 if (!isMatch)
                     continue;
 
-                try { cmd.method.Invoke(cmd.obj, args); }
+                try
+                {
+                    object? result = cmd.method.Invoke(cmd.obj, args);
+                    if (result is Task task)
+                        task.GetAwaiter().GetResult();
+                }
                 catch (Exception e) { PrintException(e); }
 
                 return;
@@ -222,7 +232,7 @@ namespace DataConverter.CLI
                 }
                 sb.Append(")\n");
             }
-            
+
             Console.WriteLine(sb.ToString());
         }
 
@@ -259,7 +269,7 @@ namespace DataConverter.CLI
         private static void Help(string cmdName)
         {
             if (!_cmds.ContainsKey(cmdName.ToLower()))
-            {                
+            {
                 Console.WriteLine($"unregisterd command \"{cmdName}\"");
                 return;
             }
@@ -280,7 +290,7 @@ namespace DataConverter.CLI
                 }
                 sb.AppendFormat("):\n{0}\n", cmd.method.GetCustomAttributes<CMDAttribute>().ToArray()[0].Desc);
             }
-            
+
             Console.WriteLine(sb.ToString());
         }
 
@@ -290,6 +300,6 @@ namespace DataConverter.CLI
             Console.Clear();
         }
 
-        #endregion        
+        #endregion
     }
 }
