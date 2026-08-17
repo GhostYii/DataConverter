@@ -108,39 +108,41 @@ namespace DataConverter.CLI
             dir = Path.GetFullPath(dir);
             saveDir = string.IsNullOrEmpty(saveDir) ? dir : Path.GetFullPath(saveDir);
 
-            string[] files = Directory.GetFiles(dir, "*.xlsx");
-            using ProgressBar progress = new ProgressBar(files.Length, "JSON");
-            await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
+            var files = Directory.GetFiles(dir, "*.xlsx");
+            using (ProgressBar progress = new ProgressBar(files.Length, "JSON"))
             {
-                try
+                await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
                 {
-                    ExcelConverter converter = new ExcelConverter();
-                    var sheets = ExcelHelper.GetWorksheetNames(file);
-                    if (sheets == null)
-                        return;
-
-                    foreach (var name in sheets)
+                    try
                     {
-                        if (!converter.CheckToJson(file, name))
-                            continue;
+                        ExcelConverter converter = new ExcelConverter();
+                        var sheets = ExcelHelper.GetWorksheetNames(file);
+                        if (sheets == null)
+                            return;
 
-                        string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.json");
-                        string json = converter.ToJson(file, name);
-                        if (string.IsNullOrEmpty(json))
-                            continue;
+                        foreach (var name in sheets)
+                        {
+                            if (!converter.CheckToJson(file, name))
+                                continue;
 
-                        File.WriteAllText(savePath, json);
+                            string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.json");
+                            string json = converter.ToJson(file, name);
+                            if (string.IsNullOrEmpty(json))
+                                continue;
+
+                            File.WriteAllText(savePath, json);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转JSON失败：{e.Message}");
-                }
-                finally
-                {
-                    progress.Increment();
-                }
-            });
+                    catch (Exception e)
+                    {
+                        ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转JSON失败：{e.Message}");
+                    }
+                    finally
+                    {
+                        progress.Increment();
+                    }
+                });
+            }
 
             ConsoleOutput.WriteLine($"JSON处理完成：{files.Length} 个文件");
         }
@@ -222,36 +224,38 @@ namespace DataConverter.CLI
             dir = Path.GetFullPath(dir);
             saveDir = string.IsNullOrEmpty(saveDir) ? dir : Path.GetFullPath(saveDir);
 
-            string[] files = Directory.GetFiles(dir, "*.xlsx");
-            using ProgressBar progress = new ProgressBar(files.Length, "CS");
-            await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
+            var files = Directory.GetFiles(dir, "*.xlsx");
+            using (ProgressBar progress = new ProgressBar(files.Length, "CS"))
             {
-                try
+                await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
                 {
-                    ExcelConverter converter = new ExcelConverter();
-                    var sheets = ExcelHelper.GetWorksheetNames(file);
-                    if (sheets == null)
-                        return;
-
-                    for (int i = 0; i < sheets.Length; i++)
+                    try
                     {
-                        string cs = converter.ToCSharp(file, i, sheets[i], nameSpace);
-                        if (string.IsNullOrEmpty(cs))
-                            continue;
+                        ExcelConverter converter = new ExcelConverter();
+                        var sheets = ExcelHelper.GetWorksheetNames(file);
+                        if (sheets == null)
+                            return;
 
-                        string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{sheets[i]}.cs");
-                        File.WriteAllText(savePath, cs);
+                        for (int i = 0; i < sheets.Length; i++)
+                        {
+                            string cs = converter.ToCSharp(file, i, sheets[i], nameSpace);
+                            if (string.IsNullOrEmpty(cs))
+                                continue;
+
+                            string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{sheets[i]}.cs");
+                            File.WriteAllText(savePath, cs);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转CS失败：{e.Message}");
-                }
-                finally
-                {
-                    progress.Increment();
-                }
-            });
+                    catch (Exception e)
+                    {
+                        ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转CS失败：{e.Message}");
+                    }
+                    finally
+                    {
+                        progress.Increment();
+                    }
+                });
+            }
 
             ConsoleOutput.WriteLine($"CS处理完成：{files.Length} 个文件");
         }
@@ -262,39 +266,41 @@ namespace DataConverter.CLI
             dir = Path.GetFullPath(dir);
             saveDir = string.IsNullOrEmpty(saveDir) ? dir : Path.GetFullPath(saveDir);
 
-            string[] files = Directory.GetFiles(dir, "*.xlsx");
-            using ProgressBar progress = new ProgressBar(files.Length, "BSON");
-            await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
+            var files = Directory.GetFiles(dir, "*.xlsx");
+            using (ProgressBar progress = new ProgressBar(files.Length, "BSON"))
             {
-                try
+                await Parallel.ForEachAsync(files, new ParallelOptions { MaxDegreeOfParallelism = GetMaxDegreeOfParallelism() }, async (file, _) =>
                 {
-                    ExcelConverter converter = new ExcelConverter();
-                    var sheets = ExcelHelper.GetWorksheetNames(file);
-                    if (sheets == null)
-                        return;
-
-                    foreach (var name in sheets)
+                    try
                     {
-                        if (!converter.CheckToJson(file, name))
-                            continue;
+                        ExcelConverter converter = new ExcelConverter();
+                        var sheets = ExcelHelper.GetWorksheetNames(file);
+                        if (sheets == null)
+                            return;
 
-                        string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.bin");
-                        byte[] bson = BsonConverter.ExcelToBson(file, name);
-                        if (bson.Length == 0)
-                            continue;
+                        foreach (var name in sheets)
+                        {
+                            if (!converter.CheckToJson(file, name))
+                                continue;
 
-                        File.WriteAllBytes(savePath, bson);
+                            string savePath = Path.Combine(saveDir, $"{Path.GetFileNameWithoutExtension(file)}.{name}.bin");
+                            byte[] bson = BsonConverter.ExcelToBson(file, name);
+                            if (bson.Length == 0)
+                                continue;
+
+                            File.WriteAllBytes(savePath, bson);
+                        }
                     }
-                }
-                catch (Exception e)
-                {
-                    ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转BSON失败：{e.Message}");
-                }
-                finally
-                {
-                    progress.Increment();
-                }
-            });
+                    catch (Exception e)
+                    {
+                        ConsoleOutput.WriteLine($"数据表'{Path.GetFileName(file)}'转BSON失败：{e.Message}");
+                    }
+                    finally
+                    {
+                        progress.Increment();
+                    }
+                });
+            }
 
             ConsoleOutput.WriteLine($"BSON处理完成：{files.Length} 个文件");
         }

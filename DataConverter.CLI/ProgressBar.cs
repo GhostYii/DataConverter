@@ -1,4 +1,4 @@
-namespace DataConverter.CLI
+﻿namespace DataConverter.CLI
 {
     using Console = System.Console;
 
@@ -10,7 +10,7 @@ namespace DataConverter.CLI
 
         private int _completed;
         private int _lastLineLength;
-        private bool _completedAll;
+        private bool _isCompleted;
 
         public ProgressBar(int total, string label)
         {
@@ -33,14 +33,14 @@ namespace DataConverter.CLI
         {
             lock (_lock)
             {
-                if (_completedAll)
+                if (_isCompleted)
                     return;
 
                 if (_completed < _total)
                     Draw(_completed);
                 ConsoleOutput.WriteProgress(Environment.NewLine);
                 _lastLineLength = 0;
-                _completedAll = true;
+                _isCompleted = true;
                 ConsoleOutput.DetachProgress();
             }
         }

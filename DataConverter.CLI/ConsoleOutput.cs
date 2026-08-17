@@ -1,25 +1,25 @@
-namespace DataConverter.CLI
+﻿namespace DataConverter.CLI
 {
     using Console = System.Console;
 
     internal static class ConsoleOutput
     {
-        private static readonly object Lock = new();
-        private static readonly List<(string Text, ConsoleColor? Color)> Pending = new();
+        private static readonly object _lock = new();
+        private static readonly List<(string Text, ConsoleColor? Color)> _pending = new();
         private static ProgressBar? _progress;
 
         public static void AttachProgress(ProgressBar progress)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 _progress = progress;
-                Pending.Clear();
+                _pending.Clear();
             }
         }
 
         public static void WriteProgress(string text)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 Console.Write(text);
             }
@@ -27,22 +27,22 @@ namespace DataConverter.CLI
 
         public static void DetachProgress()
         {
-            lock (Lock)
+            lock (_lock)
             {
                 _progress = null;
-                foreach (var (text, color) in Pending)
+                foreach (var (text, color) in _pending)
                     WriteLineNow(text, color);
-                Pending.Clear();
+                _pending.Clear();
             }
         }
 
         public static void WriteLine(string message, ConsoleColor? color = null)
         {
-            lock (Lock)
+            lock (_lock)
             {
                 if (_progress != null)
                 {
-                    Pending.Add((message, color));
+                    _pending.Add((message, color));
                     return;
                 }
 

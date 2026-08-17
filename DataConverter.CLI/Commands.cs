@@ -121,13 +121,7 @@ namespace DataConverter.CLI
                 if (!isMatch)
                     continue;
 
-                try
-                {
-                    object? result = cmd.method.Invoke(cmd.obj, argsWithType);
-                    if (result is Task task)
-                        task.GetAwaiter().GetResult();
-                }
-                catch (Exception e) { PrintException(e); }
+                Invoke(cmd, argsWithType);
 
                 return;
 
@@ -165,13 +159,7 @@ namespace DataConverter.CLI
                 if (!isMatch)
                     continue;
 
-                try
-                {
-                    object? result = cmd.method.Invoke(cmd.obj, args);
-                    if (result is Task task)
-                        task.GetAwaiter().GetResult();
-                }
-                catch (Exception e) { PrintException(e); }
+                Invoke(cmd, args);
 
                 return;
             }
@@ -196,6 +184,20 @@ namespace DataConverter.CLI
             //}
             //sb.Append(")");
             //Terminal?.AppendRaw(sb.ToString());
+        }
+
+        private static void Invoke(CommandInfo cmd, object[] args)
+        {
+            try
+            {
+                object? result = cmd.method.Invoke(cmd.obj, args);
+                if (result is Task task)
+                    task.GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                PrintException(e);
+            }
         }
 
         private static void PrintException(Exception exception)

@@ -197,12 +197,7 @@ namespace DataConverter.Core
                 if (!data.Types.ContainsKey(columnName) || cellName.settings.isIgnore)
                     continue;
 
-                if (!data.Config.ignoreNote &&
-                    data.Notes.TryGetValue(columnName, out List<string> notes))
-                {
-                    foreach (string note in notes)
-                        writer.WriteLine($"// {note}");
-                }
+                WriteFieldComments(writer, data, columnName);
 
                 writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.name};");
                 //writer.WriteLine($"public {data.Types[columnName].TypeName} {cellName.fieldName} {{ get; set; }}");
@@ -283,6 +278,15 @@ namespace DataConverter.Core
             }
 
             return string.Empty;
+        }
+
+        private static void WriteFieldComments(CodeWriter writer, ExcelData data, string columnName)
+        {
+            if (data.Config.ignoreNote || !data.Notes.TryGetValue(columnName, out List<string> notes))
+                return;
+
+            foreach (string note in notes)
+                writer.WriteLine($"// {note}");
         }
 
         private JObject ToJsonObject(ExcelData data, int rowNumber)

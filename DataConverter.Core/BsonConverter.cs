@@ -21,7 +21,7 @@ namespace DataConverter.Core
 
         // MongoDB.Bson 默认会把名为 id/Id 的成员映射为 _id，
         // ExcelToBson 时同步该字段名，保证 FromBson<T> 能正确读回。
-        private const string IdElementName = "_id";
+        private const string ID_ELEMENT_NAME = "_id";
 
         public static byte[] ToBson<T>(T obj)
         {
@@ -114,7 +114,7 @@ namespace DataConverter.Core
                     foreach (BsonElement element in document)
                     {
                         string name = string.Equals(element.Name, "id", StringComparison.OrdinalIgnoreCase)
-                            ? IdElementName
+                            ? ID_ELEMENT_NAME
                             : element.Name;
 
                         if (result.Contains(name))
